@@ -4,7 +4,6 @@ Glyph = List[str]
 
 
 class Glyphs(dict):
-
     def __init__(self, glyphs: str, chars: List[str] | str):
         # Ignore leading/trailing line breaks
         if isinstance(glyphs, str):

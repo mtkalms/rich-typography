@@ -38,7 +38,7 @@ class Font:
 
     def __str__(self):
         return "\n".join(
-            f"{char}\n{"\n".join(glyph)}"
+            f"{char}\n{'\n'.join(glyph)}"
             for char, glyph in (self._glyphs | self._ligatures).items()
         )
 

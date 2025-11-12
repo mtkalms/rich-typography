@@ -6,7 +6,6 @@ from rich_typography.fonts import ILLUMINA
 
 
 class Typography:
-
     def __init__(
         self,
         text: str,
