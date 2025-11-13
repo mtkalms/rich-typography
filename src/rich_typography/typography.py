@@ -2,7 +2,7 @@ from rich_typography.fonts._font import Font
 from rich.console import Console, ConsoleOptions, RenderResult
 from rich.segment import Segment
 
-from rich_typography.fonts import ILLUMINA
+from rich_typography.fonts import ILLUMINA, SEMISERIF
 
 
 class Typography:
@@ -59,3 +59,4 @@ class Typography:
 if __name__ == "__main__":
     console = Console()
     console.print(Typography("textual/rich illumina", ILLUMINA))
+    console.print(Typography("textual/rich semiserif", SEMISERIF))
