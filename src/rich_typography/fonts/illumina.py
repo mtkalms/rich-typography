@@ -1,7 +1,7 @@
 import string
 
 from rich_typography.glyphs import Glyphs
-from rich_typography.fonts._font import Font
+from rich_typography.fonts import Font
 
 LOWER = Glyphs(
     """

@@ -1,7 +1,7 @@
 import string
 
 from rich_typography.glyphs import Glyphs
-from rich_typography.fonts._font import Font
+from rich_typography.fonts import Font
 
 LOWER = Glyphs(
     """
@@ -55,6 +55,11 @@ if __name__ == "__main__":
     from rich_typography.typography import Typography
 
     console = Console()
-    console.print(Typography("\"The quick brown fox jumps over the lazy dog,\" which contains every letter of the alphabet. ",SEMISERIF))
-    
-    console.print(Typography("Tom & Jerry ",SEMISERIF))
+    console.print(
+        Typography(
+            '"The quick brown fox jumps over the lazy dog," which contains every letter of the alphabet. ',
+            SEMISERIF,
+        )
+    )
+
+    console.print(Typography("Tom & Jerry ", SEMISERIF))
