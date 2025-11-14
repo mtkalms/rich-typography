@@ -47,7 +47,18 @@ PUNCTUATION = Glyphs(
     string.punctuation,
 )
 
-SEMISERIF = Font("Semi Serif", UPPER | LOWER | DIGITS | PUNCTUATION)
+LIGATURES = Glyphs(
+    """
+   
+┬┬╮
+│├┘
+╵╰╴
+   
+""",
+    ["re"],
+)
+
+SEMISERIF = Font("Semi Serif", UPPER | LOWER | DIGITS | PUNCTUATION, LIGATURES)
 
 
 if __name__ == "__main__":
