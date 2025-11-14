@@ -21,39 +21,43 @@ class Typography:
     def __rich_console__(
         self, console: Console, options: ConsoleOptions
     ) -> RenderResult:
-        text = self._text
-        result = [""] * self._font._line_height
-        ligature = False
-        for curr, prv, nxt in zip(text, " " + text[:-1], text[1:] + " "):
-            if ligature:
-                ligature = False
-                continue
-            if self._use_ligartures and curr + nxt in self._font:
-                ligature = True
-                letter = self._font.ligature(curr + nxt)
-            else:
-                letter = self._font.glyph(curr)
-            if (
-                self._use_kerning
-                and prv != " "
-                and curr != " "
-                and all(result)
-                and all(
-                    result[d][-1] == " " or letter[d][0] == " "
-                    for d in range(self._font._line_height)
-                )
-            ):
-                # fix char spacing where possible
-                result = [
-                    r[:-1]
-                    + (r[-1] if r[-1] != " " else letter[idx][0])
-                    + letter[idx][1:]
-                    for idx, r in enumerate(result)
-                ]
-            else:
-                result = [r + letter[idx] for idx, r in enumerate(result)]
-        for line in result:
-            yield Segment(line + "\n")
+        for line in self._text.splitlines():
+            fragments = [""] * self._font._line_height
+            ligature = False
+            for curr, prv, nxt in zip(line, " " + line[:-1], line[1:] + " "):
+                if ligature:
+                    ligature = False
+                    continue
+                if self._use_ligartures and curr + nxt in self._font:
+                    ligature = True
+                    letter = self._font.ligature(curr + nxt)
+                else:
+                    letter = self._font.glyph(curr)
+                if len(fragments[0]) + len(letter[0]) > console.width:
+                    for fragment in fragments:
+                        yield Segment(fragment + "\n")
+                    fragments = [""] * self._font._line_height
+                if (
+                    self._use_kerning
+                    and prv != " "
+                    and curr != " "
+                    and all(fragments)
+                    and all(
+                        fragments[d][-1] == " " or letter[d][0] == " "
+                        for d in range(self._font._line_height)
+                    )
+                ):
+                    # fix char spacing where possible
+                    fragments = [
+                        r[:-1]
+                        + (r[-1] if r[-1] != " " else letter[idx][0])
+                        + letter[idx][1:]
+                        for idx, r in enumerate(fragments)
+                    ]
+                else:
+                    fragments = [r + letter[idx] for idx, r in enumerate(fragments)]
+            for fragment in fragments:
+                yield Segment(fragment + "\n")
 
 
 if __name__ == "__main__":
