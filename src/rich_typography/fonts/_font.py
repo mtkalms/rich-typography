@@ -1,5 +1,4 @@
-from typing import Any, Optional
-from rich.table import Table
+from typing import Any, Dict, List, Optional
 from rich_typography.glyphs import Glyphs, Glyph
 
 
@@ -7,17 +6,17 @@ class Font:
     def __init__(
         self,
         name: str,
-        glyphs: Glyphs,
-        ligatures: Optional[Glyphs] = {},
-        space_width: Optional[int] = 1,
+        glyphs: Dict[str, List[str]],
+        ligatures: Optional[Glyphs] = None,
+        space_width: int = 1,
     ):
         self._name = name
         self._line_height = len(list(glyphs.values())[0])
         self._glyphs = glyphs | Glyphs(self.space(space_width, self._line_height), " ")
-        self._ligatures = ligatures
+        self._ligatures = ligatures or {}
 
     @classmethod
-    def space(cls, width: int, line_height: int) -> Glyph:
+    def space(cls, width: int, line_height: int) -> str:
         return "\n".join([" " * width] * line_height)
 
     @classmethod
@@ -38,7 +37,7 @@ class Font:
 
     def __str__(self):
         return "\n".join(
-            f"{char}\n{'\n'.join(glyph)}"
+            char + "\n" + "\n".join(glyph)
             for char, glyph in (self._glyphs | self._ligatures).items()
         )
 
