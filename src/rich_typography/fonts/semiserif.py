@@ -19,8 +19,8 @@ UPPER = Glyphs(
 ┬╮ ┬╮ ╭╮ ┬╮ ┬╴ ┬╴ ╭╮ ┐╷ ┐  ┐ ┐╷ ┐  ┬┬╮ ┬╮ ╭╮ ┬╮ ╭╮  ┬╮ ╭┐ ┌┬┐ ┐╷ ┐╷ ┐╷╷ ┐╷ ┐╷ ┌╮
 ├┤ ├┤ │╵ ││ ├  ├  │╵ ├┤ │  │ ├╯ │  │││ ││ ││ ││ ││  ├╯ ╰╮  │  ││ ││ │││ ╭╯ ││ ╭╯
 ││ ││ │  ││ │  │  │┐ ││ │ ╷│ ││ │  │││ ││ ││ ├╯ ││  ││  │  │  ││ ││ │││ ││ ││ │ 
-╵╵ └╯ ╰╯ └╯ └╴ ╵  ╰╯ ╵╵ ╵ ╰╯ ╵╵ └┘ ╵╵╵ ╵╵ ╰╯ ╵  ╰╯╮ ╵╵ └╯  ╵  ╰╯ ╰┘ ╰┴╯ ╵╵ ╰┤ ╰┘
-                                                                           └╯   
+╵╵ └╯ ╰╯ └╯ └╴ ╵  ╰╯ ╵╵ ╵ ╰╯ ╵╵ └┘ ╵╵╵ ╵╵ ╰╯ ╵  ╰┤  ╵╵ └╯  ╵  ╰╯ ╰┘ ╰┴╯ ╵╵ ╰┤ ╰┘
+                                                 ╰╯                        └╯   
 """,
     string.ascii_uppercase,
 )
@@ -39,9 +39,9 @@ DIGITS = Glyphs(
 PUNCTUATION = Glyphs(
     """
 ╷ ╷╷    ╭┼╮ ◯  ╱ ╭╮╷ ╷ ╭ ╮                   ╱      ╱    ╲  ╭╮     ┌╴ ╲    ╶┐ ╱╲    ╲ ╭╴ ╷ ╶╮    
-│    ┼┼ ╰┼╮   ╱  ├─┼   │ │                  ╱  · · ╱  ╶╴  ╲ ╭╯ ╭─╮ │   ╲    │         ┼  │  ┼ ╭╮ 
-│    ┼┼   │  ╱   │ │   │ │ ╶╳╴ ╶┼╴ ╷ ╶╴    ╱   · ╷ ╲  ╶╴  ╱ │  │╭┤ │    ╲   │         │  │  │  ╰╯
-·       └┼╯ ╱  ◯ ╰╯╰   ╰ ╯         ╵    · ╱      ╵  ╲    ╱  ·  │╰╯ └╴    ╲ ╶┙    ╶╴   ╰╴ ╵ ╶╯    
+│    ┼┼ ╰┼╮   ╱  ├─┼   │ │                  ╱  ·   ╱  ╶╴  ╲ ╭╯ ╭─╮ │   ╲    │         ┼  │  ┼ ╭╮ 
+│    ┼┼   │  ╱   │ │   │ │ ╶╳╴ ╶┼╴   ╶╴    ╱   · · ╲  ╶╴  ╱ │  │╭┤ │    ╲   │         │  │  │  ╰╯
+·       └┼╯ ╱  ◯ ╰╯╰   ╰ ╯         │    · ╱      │  ╲    ╱  ·  │╰╯ └╴    ╲ ╶┙    ╶╴   ╰╴ ╵ ╶╯    
                                                                ╰─╯                               
 """,
     string.punctuation,
@@ -49,13 +49,13 @@ PUNCTUATION = Glyphs(
 
 LIGATURES = Glyphs(
     """
-       
-┬┬╮ ┬╮╮
-│├┘ │╭┤
-╵╰╴ ╵╰┘
-       
+         . ╭╮
+┬┬╮ ┬╮╮ ┬┐ ┼┐
+│├┘ │╭┤ ││ ││
+╵╰╴ ╵╰┘ ╵╵ ╵╵
+             
 """,
-    ["re", "ra"],
+    ["re", "ra", "ri", "fi"],
 )
 
 SEMISERIF = Font("Semi Serif", UPPER | LOWER | DIGITS | PUNCTUATION, LIGATURES)
@@ -80,6 +80,8 @@ Suspendisse vel blandit enim. Sed id felis sed sapien mattis feugiat aliquam imp
             SEMISERIF,
         )
     )
+    console.print(Typography("You are rad! Just right, figuretively. Qualification", SEMISERIF))
+    console.print(Typography("You are rad! Just right, figuretively. Qualification", SEMISERIF, use_ligatures=False))
     console.print(Text(lorem))
     console.print(Typography(lorem, SEMISERIF))
     console.print()
