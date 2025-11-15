@@ -21,16 +21,21 @@ class Typography:
     def __rich_console__(
         self, console: Console, options: ConsoleOptions
     ) -> RenderResult:
+        max_ligature = max(len(l) for l in self._font._ligatures)
         for line in self._text.splitlines():
             fragments = [""] * self._font._line_height
-            ligature = False
-            for curr, prv, nxt in zip(line, " " + line[:-1], line[1:] + " "):
-                if ligature:
-                    ligature = False
+            ligature = 0
+            for curr_idx, curr in enumerate(line):
+                prv = line[curr_idx - 1] if curr_idx > 0 else None
+                if ligature > 0:
+                    ligature -= 1
                     continue
-                if self._use_ligartures and curr + nxt in self._font:
-                    ligature = True
-                    letter = self._font.ligature(curr + nxt)
+                for offset in range(max_ligature, 1, -1):
+                    substr = line[curr_idx:curr_idx + offset]
+                    if self._use_ligartures and substr in self._font._ligatures:
+                        ligature = offset - 1
+                        letter = self._font.ligature(substr)
+                        break
                 else:
                     letter = self._font.glyph(curr)
                 if len(fragments[0]) + len(letter[0]) > console.width:
