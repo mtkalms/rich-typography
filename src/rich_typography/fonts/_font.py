@@ -29,6 +29,9 @@ class Font:
     def ligature(self, char: str) -> Glyph:
         return self._ligatures.get(char, self.placeholder(self._line_height))
 
+    def max_ligature_length(self) -> int:
+        return len(max(self._ligatures, key=len))
+
     def __contains__(self, other: Any) -> bool:
         if isinstance(other, str):
             return other in self._glyphs or other in self._ligatures
