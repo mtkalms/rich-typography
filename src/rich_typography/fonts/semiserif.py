@@ -49,13 +49,13 @@ PUNCTUATION = Glyphs(
 
 LIGATURES = Glyphs(
     """
-         . ╭╮
-┬┬╮ ┬╮╮ ┬┐ ┼┐
-│├┘ │╭┤ ││ ││
-╵╰╴ ╵╰┘ ╵╵ ╵╵
-             
+         . ╭╮ ╭╭╮ ╭╷ ╭╭╮
+┬┬╮ ┬╮╮ ┬┐ ┼┐ ┼┼  ┼┼ ┼┼┐
+│├┘ │╭┤ ││ ││ ││  ││ │││
+╵╰╴ ╵╰┘ ╵╵ ╵╵ ╵╵  ╵╰ ╵╵╵
+                        
 """,
-    ["re", "ra", "ri", "fi"],
+    ["re", "ra", "ri", "fi", "ff", "ft", "ffi"],
 )
 
 SEMISERIF = Font("Semi Serif", UPPER | LOWER | DIGITS | PUNCTUATION, LIGATURES)
