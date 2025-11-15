@@ -6,8 +6,12 @@ from rich_typography.fonts import ILLUMINA, SEMISERIF
 from rich_typography.glyphs import Glyph
 
 
-def len_trailing(line: str):
+def _trailing(line: str):
     return len(line) - len(line.rstrip())
+
+
+def _leading(line: str):
+    return len(line) - len(line.lstrip())
 
 
 class Typography:
@@ -21,25 +25,27 @@ class Typography:
     ):
         self._text = text
         self._font = font
-        self._spacing = adjust_spacing
+        self._adjust_spacing = adjust_spacing
         self._use_kerning = use_kerning
         self._use_ligartures = use_ligatures
 
     @classmethod
     def max_overlap(cls, a: Glyph, b: Glyph) -> int:
-        return min(len_trailing(la) + len_trailing(lb) for la, lb in zip(a, b))
+        return min(_trailing(la) + _leading(lb) for la, lb in zip(a, b))
 
     @classmethod
-    def merge_glyphs(cls, a: Glyph, b: Glyph, overlap: int) -> Glyph:
-        return [
-            la[:-overlap]
-            + "".join(
-                rlb if rlb != " " else rla
-                for rla, rlb in zip(la[-overlap:], lb[:overlap])
-            )
-            + lb[overlap:]
-            for la, lb in zip(a, b)
-        ]
+    def merge_lines(cls, a: str, b: str) -> str:
+        return "".join(rlb if rlb != " " else rla for rla, rlb in zip(a, b))
+
+    @classmethod
+    def merge_glyphs(cls, a: Glyph, b: Glyph, offset: int) -> Glyph:
+        if offset >= 0:
+            return [la + (" " * offset) + lb for la, lb in zip(a, b)]
+        else:
+            return [
+                la[:offset] + cls.merge_lines(la[offset:], lb[:-offset]) + lb[-offset:]
+                for la, lb in zip(a, b)
+            ]
 
     def __rich_console__(
         self, console: Console, options: ConsoleOptions
@@ -65,23 +71,19 @@ class Typography:
                     for fragment in fragments:
                         yield Segment(fragment + "\n")
                     fragments = [""] * self._font._line_height
-                spacing = self.max_overlap(fragments, letter) - self._spacing
-                if (
-                    self._use_kerning
-                    and prv != " "
-                    and curr != " "
-                    and all(fragments)
-                    and spacing > 0
-                ):
-                    # fix char spacing where possible
+                if all(fragments):
+                    spacing = self._font.letter_spacing + self._adjust_spacing
+                    if self._use_kerning and prv != " " and curr != " ":
+                        spacing -= self.max_overlap(fragments, letter)
                     fragments = self.merge_glyphs(fragments, letter, spacing)
                 else:
-                    fragments = [r + letter[idx] for idx, r in enumerate(fragments)]
+                    fragments = letter
             for fragment in fragments:
                 yield Segment(fragment + "\n")
 
 
 if __name__ == "__main__":
     console = Console()
+
     console.print(Typography("textual/rich illumina", ILLUMINA))
     console.print(Typography("textual/rich semiserif", SEMISERIF))

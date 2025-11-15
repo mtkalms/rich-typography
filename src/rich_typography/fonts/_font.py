@@ -8,10 +8,12 @@ class Font:
         name: str,
         glyphs: Dict[str, List[str]],
         ligatures: Optional[Glyphs] = None,
+        letter_spacing: int = 0,
         space_width: int = 1,
     ):
         self._name = name
         self._line_height = len(list(glyphs.values())[0])
+        self.letter_spacing = letter_spacing
         self._glyphs = glyphs | Glyphs(self.space(space_width, self._line_height), " ")
         self._ligatures = ligatures or {}
 
