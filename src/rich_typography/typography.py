@@ -1,8 +1,12 @@
-from rich_typography.fonts._font import Font
+from rich_typography.fonts import Font, SEMISERIF
 from rich.console import Console, ConsoleOptions, RenderResult
+from rich.containers import Lines
+from rich.control import strip_control_codes
 from rich.segment import Segment
-from typing import Iterable, List, Tuple, Optional
-from rich.console import JustifyMethod
+from rich.style import Style
+from rich.text import Span, Text
+from typing import Iterable, List, Tuple, Optional, Union
+from rich.console import JustifyMethod, OverflowMethod
 from rich_typography.glyphs import Glyph
 import re
 
@@ -18,15 +22,29 @@ def _leading(line: str):
 class Typography:
     def __init__(
         self,
-        text: str,
-        font: Font,
-        justify: Optional[JustifyMethod] = None,
+        text: str = "",
+        style: Union[str, Style] = "",
+        *,
+        justify: Optional["JustifyMethod"] = None,
+        overflow: Optional["OverflowMethod"] = None,
+        no_wrap: Optional[bool] = None,
+        end: str = "\n",
+        tab_size: Optional[int] = None,
+        spans: Optional[List[Span]] = None,
+        font: Font = SEMISERIF,
         adjust_spacing: int = 0,
         use_kerning: bool = True,
         use_ligatures: bool = True,
     ):
-        self.justify = justify
-        self._text = text
+        sanitized_text = strip_control_codes(text)
+        self._text = sanitized_text
+        self.style = style
+        self.justify: Optional["JustifyMethod"] = justify
+        self.overflow: Optional["OverflowMethod"] = overflow
+        self.no_wrap = no_wrap
+        self.end = end
+        self.tab_size = tab_size
+        self._spans: List[Span] = spans or []
         self._font = font
         self._adjust_spacing = adjust_spacing
         self._use_kerning = use_kerning
@@ -70,6 +88,9 @@ class Typography:
         glyphs += list(text[last:])
         return glyphs
 
+    def __str__(self) -> str:
+        return self._text
+
     def glyph_width(self, a: str):
         return len(self._font.get(a)[0])
 
@@ -82,37 +103,91 @@ class Typography:
             width += self.glyph_width(b) + self.letter_adjust(a, b)
         return width
 
-    def wrap(self, text: str, max_width: int) -> Iterable[Tuple[str, int]]:
-        lines = []
-        lengths = []
-        space_width = self._font.space_width()
-        for line in text.splitlines():
-            cumm_length = 0
-            words = []
-            for word in line.split(" "):
-                word_length = self.rendered_width(word)
-                length = word_length
-                if cumm_length > 0:
-                    length += space_width
-                if cumm_length + length > max_width:
-                    lines.append(" ".join(words))
-                    lengths.append(cumm_length)
-                    words = []
-                    cumm_length = 0
-                words.append(word)
-                if cumm_length > 0:
-                    cumm_length += length
-                else:
-                    cumm_length += word_length
-            lines.append(" ".join(words))
-            lengths.append(cumm_length)
-        return zip(lines, lengths)
+    def copy(self) -> "Typography":
+        return Typography(
+            self._text,
+            style=self.style,
+            justify=self.justify,
+            overflow=self.overflow,
+            no_wrap=self.no_wrap,
+            end=self.end,
+            tab_size=self.tab_size,
+            spans=self._spans[:],
+            font=self._font,
+            adjust_spacing=self._adjust_spacing,
+            use_kerning=self._use_kerning,
+            use_ligatures=self._use_ligartures,
+        )
 
-    def __rich_console__(
-        self, console: Console, options: ConsoleOptions
-    ) -> RenderResult:
+    @classmethod
+    def from_text(cls, text: Text) -> "Typography":
+        return Typography(
+            text.plain,
+            style=text.style,
+            spans=text.spans[:],
+            justify=text.justify,
+            overflow=text.overflow,
+            no_wrap=text.no_wrap,
+            end=text.end,
+            tab_size=text.tab_size,
+        )
+
+    def to_text(self) -> Text:
+        return Text(
+            self._text,
+            style=self.style,
+            justify=self.justify,
+            overflow=self.overflow,
+            no_wrap=self.no_wrap,
+            end=self.end,
+            tab_size=self.tab_size,
+            spans=self._spans[:],
+        )
+
+    def wrap(
+        self,
+        width: int,
+    ) -> Iterable["Typography"]:
+        lines = Lines()
+        text = self.to_text()
+        for line in text.split(allow_blank=True):
+            if "\t" in line:
+                line.expand_tabs(self.tab_size)
+            if self.no_wrap:
+                new_lines = [line]
+            else:
+                offsets, _ = self.divide(str(line), width)
+                new_lines = line.divide(offsets)
+            for line in new_lines:
+                line.rstrip_end(width)
+            lines.extend(new_lines)
+        return [Typography.from_text(line) for line in lines]
+
+    def divide(self, text: str, width: int) -> Tuple[Iterable[int], Iterable[int]]:
+        offsets = []
+        lengths = []
+        space_length = self._font.space_width()
+        offset = 0
+        length = 0
+        for word in text.split(" "):
+            remaining = width - length
+            word_length = self.rendered_width(word)
+            if word_length > remaining:
+                offsets.append(offset)
+                lengths.append(length)
+                length = 0
+            if length > 0:
+                length += space_length
+            length += word_length
+            offset += len(word) + 1
+        offsets.append(offset)
+        lengths.append(length)
+        return offsets, lengths
+
+    def render(self, console: "Console") -> Iterable["Segment"]:
         max_ligature = self._font.max_ligature_length()
-        for line, length in self.wrap(self._text, console.width):
+        for line in self._text.splitlines():
+            length = self.rendered_width(line)
             if self.justify == "right":
                 indent = int(console.width - length)
             elif self.justify == "center":
@@ -122,6 +197,7 @@ class Typography:
             fragments = [" " * indent] * self._font._line_height
             ligature = 0
             for curr_idx, curr in enumerate(line):
+                # TODO: Apply styles
                 prv = line[curr_idx - 1] if curr_idx > 0 else " "
                 if ligature > 0:
                     ligature -= 1
@@ -143,3 +219,10 @@ class Typography:
                     fragments = letter
             for fragment in fragments:
                 yield Segment(fragment + "\n")
+
+    def __rich_console__(
+        self, console: Console, options: ConsoleOptions
+    ) -> RenderResult:
+        lines = self.wrap(console.width)
+        for line in lines:
+            yield from line.render(console)

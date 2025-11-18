@@ -77,11 +77,21 @@ Suspendisse vel blandit enim. Sed id felis sed sapien mattis feugiat aliquam imp
     console.print(
         Typography(
             '"The quick brown fox jumps over the lazy dog," which contains every letter of the alphabet. ',
-            SEMISERIF,
+            font=SEMISERIF,
         )
     )
-    console.print(Typography("You are rad! Just right, figuretively. Qualification", SEMISERIF))
-    console.print(Typography("You are rad! Just right, figuretively. Qualification", SEMISERIF, use_ligatures=False))
+    console.print(
+        Typography(
+            "You are rad! Just right, figuretively. Qualification", font=SEMISERIF
+        )
+    )
+    console.print(
+        Typography(
+            "You are rad! Just right, figuretively. Qualification",
+            font=SEMISERIF,
+            use_ligatures=False,
+        )
+    )
     console.print(Text(lorem))
-    console.print(Typography(lorem, SEMISERIF))
+    console.print(Typography(lorem, font=SEMISERIF, justify="right"))
     console.print()
