@@ -172,14 +172,16 @@ class Typography:
         for word in text.split(" "):
             remaining = width - length
             word_length = self.rendered_width(word)
-            if word_length > remaining:
+            if word_length >= remaining:
                 offsets.append(offset)
                 lengths.append(length)
                 length = 0
             if length > 0:
                 length += space_length
             length += word_length
-            offset += len(word) + 1
+            if offset > 0:
+                offset += 1
+            offset += len(word)
         offsets.append(offset)
         lengths.append(length)
         return offsets, lengths
