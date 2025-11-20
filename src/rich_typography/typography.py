@@ -185,7 +185,6 @@ class Typography:
         return offsets, lengths
 
     def render(self, console: "Console") -> Iterable["Segment"]:
-        max_ligature = self._font.max_ligature_length()
         for line in self._text.splitlines():
             length = self.rendered_width(line)
             if self.justify == "right":
@@ -194,29 +193,17 @@ class Typography:
                 indent = int((console.width - length) // 2)
             else:
                 indent = 0
-            fragments = [" " * indent] * self._font._line_height
-            ligature = 0
-            for curr_idx, curr in enumerate(line):
-                # TODO: Apply styles
-                prv = line[curr_idx - 1] if curr_idx > 0 else " "
-                if ligature > 0:
-                    ligature -= 1
-                    continue
-                for offset in range(max_ligature, 1, -1):
-                    substr = line[curr_idx : curr_idx + offset]
-                    if self._use_ligartures and substr in self._font._ligatures:
-                        ligature = offset - 1
-                        letter = self._font.ligature(substr)
-                        break
-                else:
-                    letter = self._font.glyph(curr)
-                if all(fragments):
-                    spacing = self._font.letter_spacing + self._adjust_spacing
-                    if self._use_kerning and prv != " " and curr != " ":
-                        spacing -= self.max_overlap(fragments, letter)
-                    fragments = self.merge_glyphs(fragments, letter, spacing)
-                else:
-                    fragments = letter
+            fragments = ["" + " " * indent] * self._font._line_height
+            offset = 0
+            last = " "
+            for fragment in self.split_glyphs(line):
+                offset += len(fragment)
+                letter = self._font.get(fragment)
+                spacing = self._font.letter_spacing + self._adjust_spacing
+                if self._use_kerning and last != " " and fragment != " ":
+                    spacing -= self.max_overlap(fragments, letter)
+                fragments = self.merge_glyphs(fragments, letter, spacing)
+                last = fragment
             for fragment in fragments:
                 yield Segment(fragment + "\n")
 
