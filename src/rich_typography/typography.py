@@ -1,3 +1,4 @@
+from functools import partial
 from rich_typography.fonts import Font, SEMISERIF
 from rich.console import Console, ConsoleOptions, RenderResult
 from rich.containers import Lines
@@ -186,6 +187,23 @@ class Typography:
         lengths.append(length)
         return offsets, lengths
 
+    def flatten_spans(self) -> List[Tuple[int, List[Style | str]]]:
+        spans = []
+        styles: List[Style | str] = []
+        for idx, span in enumerate(self._spans):
+            spans.append((span.start, 1, idx))
+            spans.append((span.end, -1, idx))
+            styles.append(span.style)
+        stack = []
+        result: List[Tuple[int, List[Style | str]]] = []
+        for pos, direction, idx in sorted(spans):
+            if direction > 0:
+                stack.append(idx)
+            else:
+                stack.remove(idx)
+            result.append((pos, [styles[d] for d in stack]))
+        return result
+
     def render(self, console: "Console") -> Iterable["Segment"]:
         for line in self._text.splitlines():
             length = self.rendered_width(line)
@@ -196,18 +214,50 @@ class Typography:
             else:
                 indent = 0
             fragments = ["" + " " * indent] * self._font._line_height
-            offset = 0
+            position = 0
             last = " "
+            style_map = []
+            get_style = partial(console.get_style, default=Style.null())
+            for idx, styles in self.flatten_spans():
+                if styles:
+                    style = Style.combine(get_style(d) for d in styles)
+                else:
+                    style = None
+                style_map.append((idx, style))
+            fragment_styles: List[Tuple[int, int, Style | None]] = [(0, 0, None)]
             for fragment in self.split_glyphs(line):
-                offset += len(fragment)
                 letter = self._font.get(fragment)
                 spacing = self._font.letter_spacing + self._adjust_spacing
                 if self._use_kerning and last != " " and fragment != " ":
                     spacing -= self.max_overlap(fragments, letter)
+
+                styles_to_apply = [
+                    style
+                    for pos, style in style_map
+                    if position <= pos < position + len(fragment)
+                ]
+                if styles_to_apply:
+                    fragment_styles[-1] = (
+                        fragment_styles[-1][0],
+                        len(fragments[0]) + spacing,
+                        fragment_styles[-1][2],
+                    )
+                    fragment_styles.append(
+                        (len(fragments[0]) + spacing, 0, styles_to_apply[-1])
+                    )
+                    print(position, fragment_styles[-1])
                 fragments = self.merge_glyphs(fragments, letter, spacing)
                 last = fragment
+                position += len(fragment)
+                fragment_styles[-1] = (
+                    fragment_styles[-1][0],
+                    len(fragments[0]),
+                    fragment_styles[-1][2],
+                )
             for fragment in fragments:
-                yield Segment(fragment + "\n")
+                for start, end, style in fragment_styles:
+                    yield (Segment(fragment[start:end], style=style))
+                yield Segment("\n")
 
     def __rich_console__(
         self, console: Console, options: ConsoleOptions
