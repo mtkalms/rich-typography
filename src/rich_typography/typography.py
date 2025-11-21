@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from functools import partial
 from rich_typography.fonts import Font, SEMISERIF
 from rich.console import Console, ConsoleOptions, RenderResult
@@ -6,7 +7,7 @@ from rich.control import strip_control_codes
 from rich.segment import Segment
 from rich.style import Style
 from rich.text import Span, Text
-from typing import Iterable, List, Tuple, Optional, Union
+from typing import Iterable, List, NamedTuple, Tuple, Optional, Union
 from rich.console import JustifyMethod, OverflowMethod
 from rich_typography.glyphs import Glyph
 import re
@@ -18,6 +19,13 @@ def _trailing(line: str):
 
 def _leading(line: str):
     return len(line) - len(line.lstrip())
+
+
+@dataclass
+class MutableSpan:
+    start: int
+    end: int
+    style: Style | None
 
 
 class Typography:
@@ -187,21 +195,32 @@ class Typography:
         lengths.append(length)
         return offsets, lengths
 
-    def flatten_spans(self) -> List[Tuple[int, List[Style | str]]]:
+    def flatten_spans(self, console: Console) -> List[MutableSpan]:
+        def combine_styles(styles: Iterable[Style | str]) -> Style | None:
+            get_style = partial(console.get_style, default=Style.null())
+            style_list = list(styles)
+            if not style_list:
+                return None
+            return Style.combine(get_style(d) for d in style_list)
+
         spans = []
         styles: List[Style | str] = []
         for idx, span in enumerate(self._spans):
             spans.append((span.start, 1, idx))
             spans.append((span.end, -1, idx))
             styles.append(span.style)
-        stack = []
-        result: List[Tuple[int, List[Style | str]]] = []
+        stack: List[int] = []
+        result: List[MutableSpan] = []
         for pos, direction, idx in sorted(spans):
             if direction > 0:
                 stack.append(idx)
             else:
                 stack.remove(idx)
-            result.append((pos, [styles[d] for d in stack]))
+            if result and result[-1].start == result[-1].end:
+                result[-1].end = pos
+            style: Style | None = combine_styles(styles[d] for d in stack if styles[d])
+            if style:
+                result.append(MutableSpan(pos, pos, style))
         return result
 
     def render(self, console: "Console") -> Iterable["Segment"]:
@@ -216,47 +235,55 @@ class Typography:
             fragments = ["" + " " * indent] * self._font._line_height
             position = 0
             last = " "
-            style_map = []
-            get_style = partial(console.get_style, default=Style.null())
-            for idx, styles in self.flatten_spans():
-                if styles:
-                    style = Style.combine(get_style(d) for d in styles)
+            text_spans = self.flatten_spans(console)
+            if text_spans:
+                if text_spans[0].start != 0:
+                    expanded_spans = [MutableSpan(0, text_spans[0].start, None)]
                 else:
-                    style = None
-                style_map.append((idx, style))
-            fragment_styles: List[Tuple[int, int, Style | None]] = [(0, 0, None)]
+                    expanded_spans = []
+                for first, second in zip(text_spans[:-1], text_spans[1:]):
+                    expanded_spans.append(first)
+                    expanded_spans.append(MutableSpan(first.end, second.start, None))
+                expanded_spans.append(text_spans[-1])
+                if expanded_spans[-1].end < len(line):
+                    expanded_spans.append(
+                        MutableSpan(expanded_spans[-1].end, len(line), None)
+                    )
+            else:
+                expanded_spans = [MutableSpan(0, len(line), None)]
+            fragment_spans: List[MutableSpan] = [MutableSpan(0, 0, None)]
+            current_span: MutableSpan | None = expanded_spans[0]
             for fragment in self.split_glyphs(line):
                 letter = self._font.get(fragment)
                 spacing = self._font.letter_spacing + self._adjust_spacing
                 if self._use_kerning and last != " " and fragment != " ":
                     spacing -= self.max_overlap(fragments, letter)
-
-                styles_to_apply = [
-                    style
-                    for pos, style in style_map
-                    if position <= pos < position + len(fragment)
+                if current_span:
+                    fragment_spans[-1].end = len(fragments[0])
+                    if position <= current_span.end < position + len(fragment):
+                        current_span = None
+                entering = [
+                    span
+                    for span in expanded_spans
+                    if position <= span.start < position + len(fragment)
                 ]
-                if styles_to_apply:
-                    fragment_styles[-1] = (
-                        fragment_styles[-1][0],
-                        len(fragments[0]) + spacing,
-                        fragment_styles[-1][2],
+                if entering:
+                    current_span = entering[-1]
+                    fragment_spans.append(
+                        MutableSpan(
+                            len(fragments[0]),
+                            len(fragments[0]) + len(letter[0]),
+                            current_span.style,
+                        )
                     )
-                    fragment_styles.append(
-                        (len(fragments[0]) + spacing, 0, styles_to_apply[-1])
-                    )
-                    print(position, fragment_styles[-1])
                 fragments = self.merge_glyphs(fragments, letter, spacing)
                 last = fragment
                 position += len(fragment)
-                fragment_styles[-1] = (
-                    fragment_styles[-1][0],
-                    len(fragments[0]),
-                    fragment_styles[-1][2],
-                )
+            if current_span:
+                fragment_spans[-1].end = len(fragments[0])
             for fragment in fragments:
-                for start, end, style in fragment_styles:
-                    yield (Segment(fragment[start:end], style=style))
+                for span in fragment_spans:
+                    yield (Segment(fragment[span.start : span.end], style=span.style))
                 yield Segment("\n")
 
     def __rich_console__(
