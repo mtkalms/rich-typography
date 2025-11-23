@@ -27,6 +27,9 @@ class MutableSpan:
     end: int
     style: Style | None
 
+    def __repr__(self) -> str:
+        return f"<{self.start}, {self.end}>"
+
 
 class Typography:
     def __init__(
@@ -237,6 +240,21 @@ class Typography:
             expanded_spans.append(MutableSpan(expanded_spans[-1].end, width, None))
         return expanded_spans
 
+    def resolve_spans(self, spans: List[MutableSpan]):
+        last = None
+        result = []
+        for span in reversed(spans):
+            if span.start > span.end:
+                continue
+            if last is None:
+                result.append(span)
+                last = span
+            elif span.start < last.start:
+                span.end = last.start
+                result.append(span)
+                last = span
+        return list(reversed(result))
+
     def render(self, console: "Console") -> Iterable["Segment"]:
         for line in self._text.splitlines():
             # Apply justification indents
@@ -262,12 +280,19 @@ class Typography:
                 spacing = self._font.letter_spacing + self._adjust_spacing
                 if self._use_kerning and last_char != " " and seg != " ":
                     spacing -= self.max_overlap(row_chars, letter)
+                row_offsets = [
+                    max(
+                        min(0, spacing + _leading(letter[d])),
+                        -(_trailing(row_chars[d])),
+                    )
+                    for d in range(self._font._line_height)
+                ]
                 # Update current style span
                 if current_span:
-                    for row in row_spans:
-                        row[-1].end = len(row_chars[0])
                     if pos <= current_span.end < pos + len(seg):
                         current_span = None
+                    for d in range(len(row_spans)):
+                        row_spans[d][-1].end = len(row_chars[d]) + row_offsets[d]
                 # Add newly entered style span
                 entering = [
                     span for span in _spans if pos <= span.start < pos + len(seg)
@@ -277,7 +302,7 @@ class Typography:
                     for d in range(len(row_spans)):
                         row_spans[d].append(
                             MutableSpan(
-                                len(row_chars[d]),
+                                len(row_chars[d]) + row_offsets[d],
                                 len(row_chars[d]) + len(letter[d]),
                                 current_span.style,
                             )
@@ -287,6 +312,8 @@ class Typography:
             if current_span:
                 for row in row_spans:
                     row[-1].end = len(row_chars[0])
+            row_spans = [self.resolve_spans(spans) for spans in row_spans]
+
             # Render result
             for row, spans in zip(row_chars, row_spans):
                 for span in spans:
