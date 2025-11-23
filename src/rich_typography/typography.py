@@ -7,7 +7,7 @@ from rich.control import strip_control_codes
 from rich.segment import Segment
 from rich.style import Style
 from rich.text import Span, Text
-from typing import Iterable, List, NamedTuple, Tuple, Optional, Union
+from typing import Dict, Iterable, List, NamedTuple, Tuple, Optional, Union
 from rich.console import JustifyMethod, OverflowMethod
 from rich_typography.glyphs import Glyph
 import re
@@ -83,18 +83,18 @@ class Typography:
             value -= self.max_overlap(*map(self._font.get, [a, b]))
         return value
 
-    def split_glyphs(self, text: str) -> List[str]:
+    def split_glyphs(self, text: str) -> Dict[int, str]:
         if not self._use_ligartures:
-            return list(text)
-        glyphs = []
+            return dict(enumerate(text))
+        glyphs: Dict[int, str] = {}
         last = 0
         ligatures = reversed(sorted(self._font.ligatures(), key=len))
         for ligature in re.finditer("|".join(ligatures), text):
             start, end = ligature.span()
-            glyphs += list(text[last:start])
-            glyphs += [text[start:end]]
+            glyphs |= dict(enumerate(text[last:start], last))
+            glyphs[start] = text[start:end]
             last = end
-        glyphs += list(text[last:])
+        glyphs |= dict(enumerate(text[last:], last))
         return glyphs
 
     def __str__(self) -> str:
@@ -106,7 +106,7 @@ class Typography:
     def rendered_width(self, text) -> int:
         if not text:
             return 0
-        glyphs = self.split_glyphs(text)
+        glyphs = list(self.split_glyphs(text).values())
         width = self.glyph_width(glyphs[0])
         for a, b in zip(glyphs[:-1], glyphs[1:]):
             width += self.glyph_width(b) + self.letter_adjust(a, b)
@@ -223,70 +223,72 @@ class Typography:
                 result.append(MutableSpan(pos, pos, style))
         return result
 
+    def expand_spans(self, spans: List[MutableSpan], width: int) -> List[MutableSpan]:
+        if not spans:
+            return [MutableSpan(0, width, None)]
+        expanded_spans = []
+        if spans[0].start != 0:
+            expanded_spans.append(MutableSpan(0, spans[0].start, None))
+        for first, second in zip(spans[:-1], spans[1:]):
+            expanded_spans.append(first)
+            expanded_spans.append(MutableSpan(first.end, second.start, None))
+        expanded_spans.append(spans[-1])
+        if expanded_spans[-1].end < width:
+            expanded_spans.append(MutableSpan(expanded_spans[-1].end, width, None))
+        return expanded_spans
+
     def render(self, console: "Console") -> Iterable["Segment"]:
         for line in self._text.splitlines():
-            length = self.rendered_width(line)
+            # Apply justification indents
+            _width = self.rendered_width(line)
             if self.justify == "right":
-                indent = int(console.width - length)
+                indent = int(console.width - _width)
             elif self.justify == "center":
-                indent = int((console.width - length) // 2)
+                indent = int((console.width - _width) // 2)
             else:
                 indent = 0
-            fragments = ["" + " " * indent] * self._font._line_height
-            position = 0
-            last = " "
-            text_spans = self.flatten_spans(console)
-            if text_spans:
-                if text_spans[0].start != 0:
-                    expanded_spans = [MutableSpan(0, text_spans[0].start, None)]
-                else:
-                    expanded_spans = []
-                for first, second in zip(text_spans[:-1], text_spans[1:]):
-                    expanded_spans.append(first)
-                    expanded_spans.append(MutableSpan(first.end, second.start, None))
-                expanded_spans.append(text_spans[-1])
-                if expanded_spans[-1].end < len(line):
-                    expanded_spans.append(
-                        MutableSpan(expanded_spans[-1].end, len(line), None)
-                    )
-            else:
-                expanded_spans = [MutableSpan(0, len(line), None)]
-            fragment_spans: List[MutableSpan] = [MutableSpan(0, 0, None)]
-            current_span: MutableSpan | None = expanded_spans[0]
-            for fragment in self.split_glyphs(line):
-                letter = self._font.get(fragment)
+            row_chars: List[str] = ["" + " " * indent] * self._font._line_height
+            row_spans: List[MutableSpan] = [MutableSpan(0, 0, None)]
+            _spans = self.flatten_spans(console)
+            _spans = self.expand_spans(_spans, len(line))
+            current_span: MutableSpan | None = _spans[0]
+            for pos, seg in self.split_glyphs(line).items():
+                last_char = line[pos - 1] if pos else " "
+                # Get rows
+                letter = self._font.get(seg)
+                # Calculate offset
                 spacing = self._font.letter_spacing + self._adjust_spacing
-                if self._use_kerning and last != " " and fragment != " ":
-                    spacing -= self.max_overlap(fragments, letter)
+                if self._use_kerning and last_char != " " and seg != " ":
+                    spacing -= self.max_overlap(row_chars, letter)
+                # Update current style span
                 if current_span:
-                    fragment_spans[-1].end = len(fragments[0])
-                    if position <= current_span.end < position + len(fragment):
+                    row_spans[-1].end = len(row_chars[0])
+                    if pos <= current_span.end < pos + len(seg):
                         current_span = None
+                # Add newly entered style span
                 entering = [
-                    span
-                    for span in expanded_spans
-                    if position <= span.start < position + len(fragment)
+                    span for span in _spans if pos <= span.start < pos + len(seg)
                 ]
                 if entering:
                     current_span = entering[-1]
-                    fragment_spans.append(
+                    row_spans.append(
                         MutableSpan(
-                            len(fragments[0]),
-                            len(fragments[0]) + len(letter[0]),
+                            len(row_chars[0]),
+                            len(row_chars[0]) + len(letter[0]),
                             current_span.style,
                         )
                     )
-                fragments = self.merge_glyphs(fragments, letter, spacing)
-                last = fragment
-                position += len(fragment)
+                # Add current letter/ligature to result
+                row_chars = self.merge_glyphs(row_chars, letter, spacing)
             if current_span:
-                fragment_spans[-1].end = len(fragments[0])
-            for fragment in fragments:
-                for span in fragment_spans:
+                row_spans[-1].end = len(row_chars[0])
+            # Render result
+            for row in row_chars:
+                for span in row_spans:
                     style = span.style
                     if style:
                         style += Style(underline=False)
-                    yield (Segment(fragment[span.start : span.end], style=style))
+                    yield (Segment(row[span.start : span.end], style=style))
                 yield Segment("\n")
 
     def __rich_console__(
