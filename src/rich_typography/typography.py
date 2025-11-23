@@ -248,7 +248,9 @@ class Typography:
             else:
                 indent = 0
             row_chars: List[str] = ["" + " " * indent] * self._font._line_height
-            row_spans: List[MutableSpan] = [MutableSpan(0, 0, None)]
+            row_spans: List[List[MutableSpan]] = [
+                [MutableSpan(0, 0, None)] for _ in range(self._font._line_height)
+            ]
             _spans = self.flatten_spans(console)
             _spans = self.expand_spans(_spans, len(line))
             current_span: MutableSpan | None = _spans[0]
@@ -262,7 +264,8 @@ class Typography:
                     spacing -= self.max_overlap(row_chars, letter)
                 # Update current style span
                 if current_span:
-                    row_spans[-1].end = len(row_chars[0])
+                    for row in row_spans:
+                        row[-1].end = len(row_chars[0])
                     if pos <= current_span.end < pos + len(seg):
                         current_span = None
                 # Add newly entered style span
@@ -271,20 +274,22 @@ class Typography:
                 ]
                 if entering:
                     current_span = entering[-1]
-                    row_spans.append(
-                        MutableSpan(
-                            len(row_chars[0]),
-                            len(row_chars[0]) + len(letter[0]),
-                            current_span.style,
+                    for d in range(len(row_spans)):
+                        row_spans[d].append(
+                            MutableSpan(
+                                len(row_chars[d]),
+                                len(row_chars[d]) + len(letter[d]),
+                                current_span.style,
+                            )
                         )
-                    )
                 # Add current letter/ligature to result
                 row_chars = self.merge_glyphs(row_chars, letter, spacing)
             if current_span:
-                row_spans[-1].end = len(row_chars[0])
+                for row in row_spans:
+                    row[-1].end = len(row_chars[0])
             # Render result
-            for row in row_chars:
-                for span in row_spans:
+            for row, spans in zip(row_chars, row_spans):
+                for span in spans:
                     style = span.style
                     if style:
                         style += Style(underline=False)
