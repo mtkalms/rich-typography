@@ -283,7 +283,10 @@ class Typography:
                 fragment_spans[-1].end = len(fragments[0])
             for fragment in fragments:
                 for span in fragment_spans:
-                    yield (Segment(fragment[span.start : span.end], style=span.style))
+                    style = span.style
+                    if style:
+                        style += Style(underline=False)
+                    yield (Segment(fragment[span.start : span.end], style=style))
                 yield Segment("\n")
 
     def __rich_console__(
