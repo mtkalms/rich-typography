@@ -1,16 +1,23 @@
+import re
 from dataclasses import dataclass
 from functools import partial
-from rich_typography.fonts import Font, SEMISERIF
-from rich.console import Console, ConsoleOptions, RenderResult
+from typing import Dict, Iterable, List, Optional, Tuple, Union
+
+from rich.console import (
+    Console,
+    ConsoleOptions,
+    JustifyMethod,
+    OverflowMethod,
+    RenderResult,
+)
 from rich.containers import Lines
 from rich.control import strip_control_codes
 from rich.segment import Segment
 from rich.style import Style
 from rich.text import Span, Text
-from typing import Dict, Iterable, List, NamedTuple, Tuple, Optional, Union
-from rich.console import JustifyMethod, OverflowMethod
+
+from rich_typography.fonts import SEMISERIF, Font
 from rich_typography.glyphs import Glyph
-import re
 
 
 def _trailing(line: str):
@@ -132,7 +139,14 @@ class Typography:
         )
 
     @classmethod
-    def from_text(cls, text: Text) -> "Typography":
+    def from_text(
+        cls,
+        text: Text,
+        font: Font = SEMISERIF,
+        adjust_spacing: int = 0,
+        use_kerning: bool = True,
+        use_ligatures: bool = True,
+    ) -> "Typography":
         return Typography(
             text.plain,
             style=text.style,
@@ -142,6 +156,10 @@ class Typography:
             no_wrap=text.no_wrap,
             end=text.end,
             tab_size=text.tab_size,
+            font=font,
+            adjust_spacing=adjust_spacing,
+            use_kerning=use_kerning,
+            use_ligatures=use_ligatures,
         )
 
     def to_text(self) -> Text:
@@ -173,7 +191,16 @@ class Typography:
             for line in new_lines:
                 line.rstrip_end(width)
             lines.extend(new_lines)
-        return [Typography.from_text(line) for line in lines]
+        return [
+            Typography.from_text(
+                line,
+                self._font,
+                self._adjust_spacing,
+                self._use_kerning,
+                self._use_ligartures,
+            )
+            for line in lines
+        ]
 
     def divide(self, text: str, width: int) -> Tuple[Iterable[int], Iterable[int]]:
         offsets = []
