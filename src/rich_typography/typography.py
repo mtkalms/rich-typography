@@ -283,6 +283,8 @@ class Typography:
         return list(reversed(result))
 
     def render(self, console: "Console") -> Iterable["Segment"]:
+        line_height = self._font._line_height
+        letter_spacing = self._font.letter_spacing
         for line in self._text.splitlines():
             # Apply justification indents
             _width = self.rendered_width(line)
@@ -292,10 +294,8 @@ class Typography:
                 indent = int((console.width - _width) // 2)
             else:
                 indent = 0
-            row_chars: List[str] = ["" + " " * indent] * self._font._line_height
-            row_spans: List[List[MutableSpan]] = [
-                [MutableSpan(0, 0, None)] for _ in range(self._font._line_height)
-            ]
+            row_chars = ["" + " " * indent] * line_height
+            row_spans = [[MutableSpan(0, 0, None)] for _ in range(line_height)]
             _spans = self.flatten_spans(console)
             _spans = self.expand_spans(_spans, len(line))
             current_span: MutableSpan | None = _spans[0]
@@ -304,7 +304,7 @@ class Typography:
                 # Get rows
                 letter = self._font.get(seg)
                 # Calculate offset
-                spacing = self._font.letter_spacing + self._adjust_spacing
+                spacing = letter_spacing + self._adjust_spacing
                 if self._use_kerning and last_char != " " and seg != " ":
                     spacing -= self.max_overlap(row_chars, letter)
                 row_offsets = [
@@ -342,12 +342,16 @@ class Typography:
             row_spans = [self.resolve_spans(spans) for spans in row_spans]
 
             # Render result
-            for row, spans in zip(row_chars, row_spans):
+            for row_num, (row, spans) in enumerate(zip(row_chars, row_spans)):
+                is_underline_row = row_num == self._font._baseline + 1
                 for span in spans:
-                    style = span.style
-                    if style:
+                    style: Style = span.style
+                    fragment = row[span.start : span.end]
+                    if style and style.underline is True:
+                        if is_underline_row:
+                            fragment = "".join("▔" if f in " " else f for f in fragment)
                         style += Style(underline=False)
-                    yield (Segment(row[span.start : span.end], style=style))
+                    yield (Segment(fragment, style=style))
                 yield Segment("\n")
 
     def __rich_console__(

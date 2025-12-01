@@ -58,7 +58,9 @@ LIGATURES = Glyphs(
     ["re", "ra", "ri", "ro", "ru", "fi", "ff", "ft", "ffi"],
 )
 
-SEMISERIF = Font("Semi Serif", UPPER | LOWER | DIGITS | PUNCTUATION, LIGATURES)
+SEMISERIF = Font(
+    "Semi Serif", UPPER | LOWER | DIGITS | PUNCTUATION, LIGATURES, baseline=3
+)
 
 
 if __name__ == "__main__":
