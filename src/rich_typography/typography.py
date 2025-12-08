@@ -290,9 +290,9 @@ class Typography:
 
     def fg_offsets(self, spacing: int, fragment: Glyph, addition: Glyph) -> List[int]:
         return [
-            max(
+            min(
                 min(0, spacing + _leading(addition[row])),
-                -(_trailing(fragment[row])),
+                max(spacing, -(_trailing(fragment[row]))),
             )
             for row in range(len(fragment))
         ]
