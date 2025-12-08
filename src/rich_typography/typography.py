@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from functools import partial
 from typing import Dict, Iterable, List, Optional, Tuple, Union
 
+from rich.color import ColorType
 from rich.console import (
     Console,
     ConsoleOptions,
@@ -36,6 +37,11 @@ class MutableSpan:
 
     def __repr__(self) -> str:
         return f"<{self.start}, {self.end}>"
+
+    def has_background(self):
+        if not self.style or not self.style.bgcolor:
+            return False
+        return self.style.bgcolor != ColorType.STANDARD
 
 
 class Typography:
@@ -282,6 +288,34 @@ class Typography:
                 last = span
         return list(reversed(result))
 
+    def fg_offsets(self, spacing: int, fragment: Glyph, addition: Glyph) -> List[int]:
+        return [
+            max(
+                min(0, spacing + _leading(addition[row])),
+                -(_trailing(fragment[row])),
+            )
+            for row in range(len(fragment))
+        ]
+
+    def bg_offsets(self, spacing: int, fragment: Glyph, addition: Glyph) -> List[int]:
+        offsets = [0] * self._font._line_height
+        for d in range(abs(spacing)):
+            majority = sum(
+                (1 if fragment[row][-(d + 1)] not in " " else 0)
+                - (1 if addition[row][abs(spacing) - (d + 1)] not in " " else 0)
+                for row in range(len(fragment))
+            )
+            if majority > 0:
+                break
+            else:
+                offsets = [-(d + 1)] * self._font._line_height
+        return offsets
+
+    def overlay_styles(self, fg: Style | None, bg: Style | None):
+        return Style(
+            color=fg.color, blink=fg.blink, bgcolor=bg.bgcolor, underline=bg.underline
+        )
+
     def render(self, console: "Console") -> Iterable["Segment"]:
         line_height = self._font._line_height
         letter_spacing = self._font.letter_spacing
@@ -307,29 +341,62 @@ class Typography:
                 spacing = letter_spacing + self._adjust_spacing
                 if self._use_kerning and last_char != " " and seg != " ":
                     spacing -= self.max_overlap(row_chars, letter)
-                row_offsets = [
-                    max(
-                        min(0, spacing + _leading(letter[d])),
-                        -(_trailing(row_chars[d])),
-                    )
-                    for d in range(self._font._line_height)
-                ]
-                # Update current style span
-                if current_span:
-                    if pos <= current_span.end < pos + len(seg):
-                        current_span = None
-                    for d in range(len(row_spans)):
-                        row_spans[d][-1].end = len(row_chars[d]) + row_offsets[d]
-                # Add newly entered style span
+                bg_offsets = self.bg_offsets(spacing, row_chars, letter)
+                fg_offsets = self.fg_offsets(spacing, row_chars, letter)
                 entering = [
                     span for span in _spans if pos <= span.start < pos + len(seg)
                 ]
-                if entering:
-                    current_span = entering[-1]
+                entering_span = entering[-1] if entering else None
+                split_styles = False
+                if current_span:
+                    leaving_span = pos <= current_span.end < pos + len(seg)
+                    split_styles = (
+                        leaving_span
+                        and (
+                            current_span.has_background()
+                            or entering_span.has_background()
+                        )
+                        and spacing != 0
+                    )
+                    for d in range(len(row_spans)):
+                        row_spans[d][-1].end = len(row_chars[d]) + fg_offsets[d]
+                    if split_styles:
+                        for d in range(len(row_spans)):
+                            row_spans[d][-1].end = len(row_chars[d]) + fg_offsets[d]
+                            if fg_offsets[d] > bg_offsets[d]:
+                                row_spans[d].append(
+                                    MutableSpan(
+                                        len(row_chars[d]) + bg_offsets[d],
+                                        len(row_chars[d]) + fg_offsets[d],
+                                        self.overlay_styles(
+                                            current_span.style, entering_span.style
+                                        ),
+                                    )
+                                )
+                            elif fg_offsets[d] < bg_offsets[d]:
+                                row_spans[d].append(
+                                    MutableSpan(
+                                        len(row_chars[d]) + fg_offsets[d],
+                                        len(row_chars[d]) + bg_offsets[d],
+                                        self.overlay_styles(
+                                            entering_span.style, current_span.style
+                                        ),
+                                    )
+                                )
+
+                    if leaving_span:
+                        current_span = None
+                if entering_span:
+                    current_span = entering_span
                     for d in range(len(row_spans)):
                         row_spans[d].append(
                             MutableSpan(
-                                len(row_chars[d]) + row_offsets[d],
+                                len(row_chars[d])
+                                + (
+                                    max(bg_offsets[d], fg_offsets[d])
+                                    if split_styles
+                                    else fg_offsets[d]
+                                ),
                                 len(row_chars[d]) + len(letter[d]),
                                 current_span.style,
                             )
