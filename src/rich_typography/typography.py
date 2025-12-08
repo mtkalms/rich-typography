@@ -339,7 +339,12 @@ class Typography:
                 letter = self._font.get(seg)
                 # Calculate offset
                 spacing = letter_spacing + self._adjust_spacing
-                if self._use_kerning and last_char != " " and seg != " ":
+                no_overlaps = ' "'
+                if (
+                    self._use_kerning
+                    and last_char not in no_overlaps
+                    and seg not in no_overlaps
+                ):
                     spacing -= self.max_overlap(row_chars, letter)
                 bg_offsets = self.bg_offsets(spacing, row_chars, letter)
                 fg_offsets = self.fg_offsets(spacing, row_chars, letter)
