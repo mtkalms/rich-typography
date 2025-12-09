@@ -312,8 +312,13 @@ class Typography:
         return offsets
 
     def overlay_styles(self, fg: Style | None, bg: Style | None):
+        _fg = fg or Style.null()
+        _bg = bg or Style.null()
         return Style(
-            color=fg.color, blink=fg.blink, bgcolor=bg.bgcolor, underline=bg.underline
+            color=_fg.color,
+            blink=_fg.blink,
+            bgcolor=_bg.bgcolor,
+            underline=_bg.underline,
         )
 
     def render(self, console: "Console") -> Iterable["Segment"]:
@@ -359,7 +364,7 @@ class Typography:
                         leaving_span
                         and (
                             current_span.has_background()
-                            or entering_span.has_background()
+                            or (entering_span and entering_span.has_background())
                         )
                         and spacing != 0
                     )
@@ -373,7 +378,9 @@ class Typography:
                                     MutableSpan(
                                         len(row_chars[d]) + bg_offsets[d],
                                         len(row_chars[d]) + fg_offsets[d],
-                                        self.overlay_styles(
+                                        current_span.style
+                                        if not entering_span
+                                        else self.overlay_styles(
                                             current_span.style, entering_span.style
                                         ),
                                     )
@@ -383,7 +390,9 @@ class Typography:
                                     MutableSpan(
                                         len(row_chars[d]) + fg_offsets[d],
                                         len(row_chars[d]) + bg_offsets[d],
-                                        self.overlay_styles(
+                                        current_span.style
+                                        if not entering_span
+                                        else self.overlay_styles(
                                             entering_span.style, current_span.style
                                         ),
                                     )

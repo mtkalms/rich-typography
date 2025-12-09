@@ -36,7 +36,11 @@ class Font:
 
     @classmethod
     def underline(
-        cls, glyph: Glyph, baseline: int, start: Optional[int], end: Optional[int]
+        cls,
+        glyph: Glyph,
+        baseline: int,
+        start: Optional[int] = None,
+        end: Optional[int] = None,
     ):
         line = glyph[baseline - 1]
         start = start or 0
