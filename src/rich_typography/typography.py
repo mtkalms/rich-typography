@@ -104,6 +104,8 @@ class Typography:
             return dict(enumerate(text))
         glyphs: Dict[int, str] = {}
         last = 0
+        if not self._font.ligatures():
+            return dict(enumerate(text))
         ligatures = reversed(sorted(self._font.ligatures(), key=len))
         for ligature in re.finditer("|".join(ligatures), text):
             start, end = ligature.span()
