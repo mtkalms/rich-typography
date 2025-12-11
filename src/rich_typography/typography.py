@@ -33,7 +33,7 @@ def _leading(line: str):
 class MutableSpan:
     start: int
     end: int
-    style: Style | None
+    style: Optional[Style]
 
     def __repr__(self) -> str:
         return f"<{self.start}, {self.end}>"
@@ -234,7 +234,7 @@ class Typography:
         return offsets, lengths
 
     def flatten_spans(self, console: Console) -> List[MutableSpan]:
-        def combine_styles(styles: Iterable[Style | str]) -> Style | None:
+        def combine_styles(styles: Iterable[Union[Style, str]]) -> Optional[Style]:
             get_style = partial(console.get_style, default=Style.null())
             style_list = list(styles)
             if not style_list:
@@ -242,7 +242,7 @@ class Typography:
             return Style.combine(get_style(d) for d in style_list)
 
         spans = []
-        styles: List[Style | str] = []
+        styles: List[Union[Style, str]] = []
         for idx, span in enumerate(self._spans):
             spans.append((span.start, 1, idx))
             spans.append((span.end, -1, idx))
@@ -256,7 +256,9 @@ class Typography:
                 stack.remove(idx)
             if result and result[-1].start == result[-1].end:
                 result[-1].end = pos
-            style: Style | None = combine_styles(styles[d] for d in stack if styles[d])
+            style: Optional[Style] = combine_styles(
+                styles[d] for d in stack if styles[d]
+            )
             if style:
                 result.append(MutableSpan(pos, pos, style))
         return result
@@ -313,7 +315,7 @@ class Typography:
                 offsets = [-(d + 1)] * self._font._line_height
         return offsets
 
-    def overlay_styles(self, fg: Style | None, bg: Style | None):
+    def overlay_styles(self, fg: Optional[Style], bg: Optional[Style]):
         _fg = fg or Style.null()
         _bg = bg or Style.null()
         return Style(
@@ -339,7 +341,7 @@ class Typography:
             row_spans = [[MutableSpan(0, 0, None)] for _ in range(line_height)]
             _spans = self.flatten_spans(console)
             _spans = self.expand_spans(_spans, len(line))
-            current_span: MutableSpan | None = _spans[0]
+            current_span: Optional[MutableSpan] = _spans[0]
             for pos, seg in self.split_glyphs(line).items():
                 last_char = line[pos - 1] if pos else " "
                 # Get rows

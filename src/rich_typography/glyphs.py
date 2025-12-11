@@ -1,10 +1,10 @@
-from typing import Dict, List
+from typing import Dict, List, Union
 
 Glyph = List[str]
 
 
 class Glyphs(dict):
-    def __init__(self, glyphs: str, chars: List[str] | str):
+    def __init__(self, glyphs: str, chars: Union[List[str], str]):
         # Ignore leading/trailing line breaks
         if isinstance(glyphs, str):
             _glyphs = glyphs.splitlines()
@@ -31,7 +31,9 @@ class Glyphs(dict):
         return super().__or__(other)
 
     @classmethod
-    def get_char_map(cls, lines: List[str], chars: List[str] | str) -> Dict[str, Glyph]:
+    def get_char_map(
+        cls, lines: List[str], chars: Union[List[str], str]
+    ) -> Dict[str, Glyph]:
         columns = zip(*lines)
         breaks = [i for i, d in enumerate(columns) if all(c == " " for c in d)]
         result = {}
