@@ -18,6 +18,17 @@ def test_overlap() -> None:
     assert_markup(Typography("forty", font=OVERLAP), expected)
 
 
+def test_space_overlap() -> None:
+    expected = MarkupResult(
+        "╭╮   ╷    ",
+        "┼╭╮┌╮┼  ╷╷",
+        "││││ │  ││",
+        "╵╰╯╵ ╰  ╰┤",
+        "       ╰─╯",
+    )
+    assert_markup(Typography("fort y", font=OVERLAP), expected)
+
+
 def test_overlap_styles() -> None:
     markup = "[red on blue]f[/red on blue][purple on green]ort[/purple on green][red on blue]y[/red on blue]"
     expected = MarkupResult(
