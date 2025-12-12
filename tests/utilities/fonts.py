@@ -28,5 +28,17 @@ OVERLAP = Font(
             ]
         ),
         ascii_uppercase,
+    )
+    | Glyphs(
+        "\n".join(
+            [
+                "   ",
+                "   ",
+                "   ",
+                "· │",
+                "   ",
+            ]
+        ),
+        ".,",
     ),
 )
