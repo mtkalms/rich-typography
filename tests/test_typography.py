@@ -89,6 +89,36 @@ def test_justify_left() -> None:
     assert_markup(Typography(text, font=OVERLAP, justify="left"), expected)
 
 
+def test_justify_center() -> None:
+    text = (
+        "Voluptates nihil cumque nemo pariatur veniam ipsa sint iusto, "
+        + "sed aperiam possimus consequuntur delectus adipisci natus sit placeat mollitia."
+    )
+    expected = MarkupResult(
+        " ╷╷  ╷    ╷  ╷       .╷ .╷                               .  ╷           .     ",
+        " ││╭╮│╷╷╭╮┼┌╮┼╭╮╭┐ ┌╮╷├╮╷│ ╭┐╷╷┌┬╮╭╮╷╷╭╮ ┌╮╭╮┌┬╮╭╮ ╭╮┌╮┌╮╷┌╮┼╷╷┌╮ ╷╷╭╮┌╮╷┌╮┌┬╮",
+        " ││││││││││╭┤│├┘╰╮ │││││││ │ │││││││││├┘ ││├┘│││││ ││╭┤│ │╭┤││││  ││├┘│││╭┤│││",
+        " ╰┘╰╯╰╰╯├╯╰╰┘╰╰╴└╯ ╵╵╵╵╵╵╰ ╰╴╰╯╵╵╵╰┤╰╯╰╴ ╵╵╰╴╵╵╵╰╯ ├╯╰┘╵ ╵╰┘╰╰╯╵  ╰┘╰╴╵╵╵╰┘╵╵╵",
+        "        ╵                          ╵               ╵                          ",
+        "        .         .  ╷ .    ╷         ╷         .              .       ",
+        "        ╷╭╮╭┐┌╮ ╭┐╷┌╮┼ ╷╷╷╭┐┼╭╮  ╭┐╭╮╭┤ ┌╮╭╮╭╮┌╮╷┌╮┌┬╮ ╭╮╭╮╭┐╭┐╷┌┬╮╷╷╭┐",
+        "        │││╰╮╭┤ ╰╮││││ │││╰╮│││  ╰╮├┘││ ╭┤││├┘│ │╭┤│││ ││││╰╮╰╮││││││╰╮",
+        "        ╵├╯└╯╰┘ └╯╵╵╵╰ ╵╰╯└╯╰╰╯│ └╯╰╴╰┘ ╰┘├╯╰╴╵ ╵╰┘╵╵╵ ├╯╰╯└╯└╯╵╵╵╵╰╯└╯",
+        "         ╵                                ╵            ╵               ",
+        "                  ╷      ╷  ╷    ╷        ╷.  .    .     ╷       .╷   ╷        ╷",
+        "╭┐╭╮┌╮╭┐╭╮╭╮╷╷╷╷┌╮┼╷╷┌╮ ╭┤╭╮│╭╮╭┐┼╷╷╭┐ ┌╮╭┤╷╭╮╷╭┐╭┐╷ ┌╮┌╮┼╷╷╭┐ ╭┐╷┼ ╭╮│┌╮╭┐╭╮┌╮┼",
+        "│ ││││╰╮├┘││││││││││││  ││├┘│├┘│ │││╰╮ ╭┤││││││╰╮│ │ ││╭┤│││╰╮ ╰╮││ │││╭┤│ ├┘╭┤│",
+        "╰╴╰╯╵╵└╯╰╴╰┤╰╯╰╯╵╵╰╰╯╵  ╰┘╰╴╰╰╴╰╴╰╰╯└╯ ╰┘╰┘╵├╯╵└╯╰╴╵ ╵╵╰┘╰╰╯└╯ └╯╵╰ ├╯╰╰┘╰╴╰╴╰┘╰",
+        "           ╵                                ╵                       ╵           ",
+        "                                      ╷╷.╷.   ",
+        "                                 ┌┬╮╭╮││╷┼╷┌╮ ",
+        "                                 ││││││││││╭┤ ",
+        "                                 ╵╵╵╰╯╰╰╵╰╵╰┘·",
+        "                                              ",
+    )
+    assert_markup(Typography(text, font=OVERLAP, justify="center"), expected)
+
+
 def test_overlap_styles() -> None:
     markup = "[red on blue]f[/red on blue][purple on green]ort[/purple on green][red on blue]y[/red on blue]"
     expected = MarkupResult(

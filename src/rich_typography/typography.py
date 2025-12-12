@@ -335,7 +335,7 @@ class Typography:
                 _width = self.rendered_width(line)
                 indent = int(console.width - _width)
             elif self.justify == "center":
-                line = line.strip()
+                line = line.rstrip()
                 _width = self.rendered_width(line)
                 indent = int((console.width - _width) // 2)
             else:
