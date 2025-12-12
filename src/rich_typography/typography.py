@@ -220,8 +220,8 @@ class Typography:
             remaining = width - length
             word_length = self.rendered_width(word)
             if word_length >= remaining:
-                offsets.append(offset)
-                lengths.append(length)
+                offsets.append(offset + 1)
+                lengths.append(length + space_length)
                 length = 0
             if length > 0:
                 length += space_length
@@ -330,10 +330,13 @@ class Typography:
         letter_spacing = self._font.letter_spacing
         for line in self._text.splitlines():
             # Apply justification indents
-            _width = self.rendered_width(line)
             if self.justify == "right":
+                line = line.rstrip()
+                _width = self.rendered_width(line)
                 indent = int(console.width - _width)
             elif self.justify == "center":
+                line = line.strip()
+                _width = self.rendered_width(line)
                 indent = int((console.width - _width) // 2)
             else:
                 indent = 0
