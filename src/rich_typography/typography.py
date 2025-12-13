@@ -425,7 +425,8 @@ class Typography:
                 # Add current letter/ligature to result
                 row_chars = self.merge_glyphs(row_chars, letter, spacing)
 
-            if self.justify == "center":
+            row_chars = [row[: console.width] for row in row_chars]
+            if self.justify in ["left", "right", "center"]:
                 row_chars = [
                     row + " " * (console.width - len(row)) for row in row_chars
                 ]
