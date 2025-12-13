@@ -424,6 +424,12 @@ class Typography:
                         )
                 # Add current letter/ligature to result
                 row_chars = self.merge_glyphs(row_chars, letter, spacing)
+
+            if self.justify == "center":
+                row_chars = [
+                    row + " " * (console.width - len(row)) for row in row_chars
+                ]
+
             if current_span:
                 for row in row_spans:
                     row[-1].end = len(row_chars[0])
