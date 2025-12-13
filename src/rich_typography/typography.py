@@ -328,6 +328,7 @@ class Typography:
     def render(self, console: "Console") -> Iterable["Segment"]:
         line_height = self._font._line_height
         letter_spacing = self._font.letter_spacing
+        space_width = self._font._space_width
         for line in self._text.splitlines():
             # Apply justification indents
             if self.justify == "right":
@@ -338,6 +339,27 @@ class Typography:
                 line = line.rstrip()
                 _width = self.rendered_width(line)
                 indent = int((console.width - _width) // 2)
+            elif self.justify == "full":
+                line = line.rstrip()
+                _width = self.rendered_width(line)
+                # extra_spaces = int((console.width - _width) // space_width)
+                words = line.split(" ")
+                num_spaces = len(words) - 1
+                words_size = _width - (num_spaces * space_width)
+                spaces = [1 for d in range(num_spaces)]
+                # space_offsets = [
+                #     sum(len(w) for w in words[: i + 1]) for i in range(len(spaces))
+                # ]
+                index = 0
+                if spaces:
+                    while words_size + num_spaces * space_width < console.width:
+                        spaces[len(spaces) - index - 1] += 1
+                        num_spaces += 1
+                        index = (index + 1) % len(spaces)
+                line = "".join(
+                    word + (" " * space) for word, space in zip(words, spaces + [0])
+                )
+                indent = 0
             else:
                 indent = 0
             row_chars = ["" + " " * indent] * line_height
@@ -426,7 +448,7 @@ class Typography:
                 row_chars = self.merge_glyphs(row_chars, letter, spacing)
 
             row_chars = [row[: console.width] for row in row_chars]
-            if self.justify in ["left", "right", "center"]:
+            if self.justify and self.justify != "default":
                 row_chars = [
                     row + " " * (console.width - len(row)) for row in row_chars
                 ]
