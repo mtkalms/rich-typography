@@ -330,6 +330,8 @@ class Typography:
         letter_spacing = self._font.letter_spacing
         space_width = self._font._space_width
         for line in self._text.splitlines():
+            row_spans = [[MutableSpan(0, 0, None)] for _ in range(line_height)]
+            _spans = self.flatten_spans(console)
             # Apply justification indents
             if self.justify == "right":
                 line = line.rstrip()
@@ -342,20 +344,32 @@ class Typography:
             elif self.justify == "full":
                 line = line.rstrip()
                 _width = self.rendered_width(line)
-                # extra_spaces = int((console.width - _width) // space_width)
                 words = line.split(" ")
                 num_spaces = len(words) - 1
                 words_size = _width - (num_spaces * space_width)
                 spaces = [1 for d in range(num_spaces)]
-                # space_offsets = [
-                #     sum(len(w) for w in words[: i + 1]) for i in range(len(spaces))
-                # ]
                 index = 0
                 if spaces:
                     while words_size + num_spaces * space_width < console.width:
                         spaces[len(spaces) - index - 1] += 1
                         num_spaces += 1
                         index = (index + 1) % len(spaces)
+                _adjusted_spans = []
+                for span in _spans:
+                    spaces_before_start = line[: span.start].count(" ")
+                    spaces_before_end = line[: span.end].count(" ")
+                    _adjusted_spans.append(
+                        MutableSpan(
+                            span.start
+                            + sum(spaces[:spaces_before_start])
+                            - spaces_before_start,
+                            span.end
+                            + sum(spaces[:spaces_before_end])
+                            - spaces_before_end,
+                            span.style,
+                        )
+                    )
+                _spans = _adjusted_spans
                 line = "".join(
                     word + (" " * space) for word, space in zip(words, spaces + [0])
                 )
@@ -363,8 +377,6 @@ class Typography:
             else:
                 indent = 0
             row_chars = ["" + " " * indent] * line_height
-            row_spans = [[MutableSpan(0, 0, None)] for _ in range(line_height)]
-            _spans = self.flatten_spans(console)
             _spans = self.expand_spans(_spans, len(line))
             current_span: Optional[MutableSpan] = _spans[0]
             for pos, seg in self.split_glyphs(line).items():
