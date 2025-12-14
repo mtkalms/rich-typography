@@ -4,6 +4,8 @@ from rich_typography.glyphs import Glyph, Glyphs
 
 Variant = Optional[Literal["underline"]]
 
+NON_OVERLAPPING = ' "'
+
 
 class Font:
     def __init__(

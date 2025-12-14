@@ -18,6 +18,7 @@ from rich.style import Style
 from rich.text import Span, Text
 
 from rich_typography.fonts import SEMISERIF, Font
+from rich_typography.fonts._font import NON_OVERLAPPING
 from rich_typography.glyphs import Glyph
 
 
@@ -325,71 +326,69 @@ class Typography:
             underline=_bg.underline,
         )
 
+    def _justify_full(self, width: int, line: str, spans: List[MutableSpan]):
+        space_width = self._font._space_width
+        line = line.rstrip()
+        line_width = self.rendered_width(line)
+        words = line.split(" ")
+        num_spaces = len(words) - 1
+        words_size = line_width - (num_spaces * space_width)
+        spaces = [1 for d in range(num_spaces)]
+        index = 0
+        if spaces:
+            while words_size + num_spaces * space_width < width:
+                spaces[len(spaces) - index - 1] += 1
+                num_spaces += 1
+                index = (index + 1) % len(spaces)
+        adjusted_spans = []
+        for span in spans:
+            spaces_before_start = line[: span.start].count(" ")
+            spaces_before_end = line[: span.end].count(" ")
+            adjusted_spans.append(
+                MutableSpan(
+                    span.start
+                    + sum(spaces[:spaces_before_start])
+                    - spaces_before_start,
+                    span.end + sum(spaces[:spaces_before_end]) - spaces_before_end,
+                    span.style,
+                )
+            )
+        adjusted_line = "".join(
+            word + (" " * space) for word, space in zip(words, spaces + [0])
+        )
+        return (adjusted_line, adjusted_spans)
+
     def render(self, console: "Console") -> Iterable["Segment"]:
         line_height = self._font._line_height
         letter_spacing = self._font.letter_spacing
-        space_width = self._font._space_width
         for line in self._text.splitlines():
-            row_spans = [[MutableSpan(0, 0, None)] for _ in range(line_height)]
+            # Flatten style spans
             _spans = self.flatten_spans(console)
-            # Apply justification indents
+            # Apply justify
+            if self.justify in ["right", "center", "justify"]:
+                line = line.rstrip()
+            line_width = self.rendered_width(line)
             if self.justify == "right":
-                line = line.rstrip()
-                _width = self.rendered_width(line)
-                indent = int(console.width - _width)
+                indent = int(console.width - line_width)
             elif self.justify == "center":
-                line = line.rstrip()
-                _width = self.rendered_width(line)
-                indent = int((console.width - _width) // 2)
-            elif self.justify == "full":
-                line = line.rstrip()
-                _width = self.rendered_width(line)
-                words = line.split(" ")
-                num_spaces = len(words) - 1
-                words_size = _width - (num_spaces * space_width)
-                spaces = [1 for d in range(num_spaces)]
-                index = 0
-                if spaces:
-                    while words_size + num_spaces * space_width < console.width:
-                        spaces[len(spaces) - index - 1] += 1
-                        num_spaces += 1
-                        index = (index + 1) % len(spaces)
-                _adjusted_spans = []
-                for span in _spans:
-                    spaces_before_start = line[: span.start].count(" ")
-                    spaces_before_end = line[: span.end].count(" ")
-                    _adjusted_spans.append(
-                        MutableSpan(
-                            span.start
-                            + sum(spaces[:spaces_before_start])
-                            - spaces_before_start,
-                            span.end
-                            + sum(spaces[:spaces_before_end])
-                            - spaces_before_end,
-                            span.style,
-                        )
-                    )
-                _spans = _adjusted_spans
-                line = "".join(
-                    word + (" " * space) for word, space in zip(words, spaces + [0])
-                )
-                indent = 0
+                indent = int((console.width - line_width) // 2)
             else:
                 indent = 0
-            row_chars = ["" + " " * indent] * line_height
+            if self.justify == "full":
+                line, _spans = self._justify_full(console.width, line, _spans)
+            # Add empty spans in all gaps
             _spans = self.expand_spans(_spans, len(line))
+            row_spans = [[MutableSpan(0, 0, None)] for _ in range(line_height)]
+            row_chars = ["" + " " * indent] * line_height
             current_span: Optional[MutableSpan] = _spans[0]
             for pos, seg in self.split_glyphs(line).items():
                 last_char = line[pos - 1] if pos else " "
-                # Get rows
                 letter = self._font.get(seg)
-                # Calculate offset
                 spacing = letter_spacing + self._adjust_spacing
-                no_overlaps = ' "'
                 if (
                     self._use_kerning
-                    and last_char not in no_overlaps
-                    and seg not in no_overlaps
+                    and last_char not in NON_OVERLAPPING
+                    and seg not in NON_OVERLAPPING
                 ):
                     spacing -= self.max_overlap(row_chars, letter)
                 bg_offsets = self.bg_offsets(spacing, row_chars, letter)
@@ -438,7 +437,6 @@ class Typography:
                                         ),
                                     )
                                 )
-
                     if leaving_span:
                         current_span = None
                 if entering_span:
