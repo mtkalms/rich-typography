@@ -223,3 +223,16 @@ def test_overlap_styles() -> None:
     )
     result = Typography.from_text(Text.from_markup(markup), font=OVERLAP)
     assert_markup(result, expected)
+
+
+def test_mask_styles() -> None:
+    markup = "[red]i[/red][blue]i[/blue][green]g[/green]"
+    expected = MarkupResult(
+        "[red].[/red][blue].[/blue][green]  [/green]",
+        "[red]╷[/red][blue]╷[/blue][green]╭┐[/green]",
+        "[red]│[/red][blue]│[/blue][green]││[/green]",
+        "[red]╵[/red][blue]╵[/blue][green]╰┤[/green]",
+        "[green]╰──╯[/green]",
+    )
+    result = Typography.from_text(Text.from_markup(markup), font=OVERLAP)
+    assert_markup(result, expected)
