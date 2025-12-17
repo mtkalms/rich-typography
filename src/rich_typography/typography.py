@@ -234,6 +234,15 @@ class Typography:
         lengths.append(length)
         return offsets, lengths
 
+    def style_borders(self, width: int) -> List[int]:
+        borders = [0, int]
+        for span in self._spans:
+            if span.start < width:
+                borders.append(span.start)
+            if span.end < width:
+                borders.append(span.end)
+        return list(sorted(set(borders)))
+
     def flatten_spans(self, console: Console) -> List[MutableSpan]:
         def combine_styles(styles: Iterable[Union[Style, str]]) -> Optional[Style]:
             get_style = partial(console.get_style, default=Style.null())
