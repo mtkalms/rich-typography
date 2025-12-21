@@ -29,6 +29,17 @@ def test_space_overlap() -> None:
     assert_markup(Typography("fort y", font=OVERLAP), expected)
 
 
+def test_tabs() -> None:
+    expected = MarkupResult(
+        "╭╮   ╷       ",
+        "┼╭╮┌╮┼     ╷╷",
+        "││││ │     ││",
+        "╵╰╯╵ ╰     ╰┤",
+        "          ╰─╯",
+    )
+    assert_markup(Typography("fort\ty", font=OVERLAP), expected)
+
+
 def test_justify_default() -> None:
     text = (
         "Voluptates nihil cumque nemo pariatur veniam ipsa sint iusto, "
