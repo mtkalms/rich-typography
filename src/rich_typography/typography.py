@@ -91,7 +91,7 @@ class Typography:
         self._adjust_spacing = adjust_spacing
         self._use_kerning = use_kerning
         self._use_ligartures = use_ligatures
-        self._style_liagtures = style_ligatures
+        self._style_ligatures: Optional["LigatureStyleMethod"] = style_ligatures
 
     @classmethod
     def max_overlap(cls, a: Glyph, b: Glyph) -> int:
@@ -162,6 +162,7 @@ class Typography:
             adjust_spacing=self._adjust_spacing,
             use_kerning=self._use_kerning,
             use_ligatures=self._use_ligartures,
+            style_ligatures=self._style_ligatures,
         )
 
     @classmethod
@@ -172,6 +173,7 @@ class Typography:
         adjust_spacing: int = 0,
         use_kerning: bool = True,
         use_ligatures: bool = True,
+        style_ligatures: Optional[LigatureStyleMethod] = None,
     ) -> "Typography":
         return Typography(
             text.plain,
@@ -186,6 +188,7 @@ class Typography:
             adjust_spacing=adjust_spacing,
             use_kerning=use_kerning,
             use_ligatures=use_ligatures,
+            style_ligatures=style_ligatures,
         )
 
     def to_text(self) -> Text:
@@ -224,6 +227,7 @@ class Typography:
                 self._adjust_spacing,
                 self._use_kerning,
                 self._use_ligartures,
+                self._style_ligatures,
             )
             for line in lines
         ]
@@ -337,7 +341,7 @@ class Typography:
                     corrected[pos] = style
                 else:
                     prv, nxt = neighbours(glyphs, pos)
-                    if self._style_liagtures == "last":
+                    if self._style_ligatures == "last":
                         corrected[prv] = style
                     else:
                         corrected[nxt] = style
