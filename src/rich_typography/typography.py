@@ -1,7 +1,7 @@
 import re
 from dataclasses import dataclass
 from functools import partial
-from typing import Dict, Iterable, List, Optional, Tuple, Union
+from typing import Dict, Iterable, List, Literal, Optional, Tuple, Union
 
 from rich.color import ColorType
 from rich.console import (
@@ -20,6 +20,9 @@ from rich.text import Span, Text
 from rich_typography.fonts import SEMISERIF, Font
 from rich_typography.fonts._font import NON_OVERLAPPING
 from rich_typography.glyphs import Glyph
+import bisect
+
+LigatureStyleMethod = Literal["first", "last"]
 
 
 def _trailing(line: str):
@@ -28,6 +31,18 @@ def _trailing(line: str):
 
 def _leading(line: str):
     return len(line) - len(line.lstrip())
+
+
+def neighbours(numbers: List[int], target: int) -> Tuple[int, int]:
+    right = bisect.bisect_right(numbers, target)
+    left = right - 1
+    return (numbers[max(left, 0)], numbers[min(right, len(numbers) - 1)])
+
+
+def has_background(style: Optional[Style]):
+    if not style or not style.bgcolor:
+        return False
+    return style.bgcolor != ColorType.STANDARD
 
 
 @dataclass
@@ -61,6 +76,7 @@ class Typography:
         adjust_spacing: int = 0,
         use_kerning: bool = True,
         use_ligatures: bool = True,
+        style_ligatures: Optional["LigatureStyleMethod"] = None,
     ):
         sanitized_text = strip_control_codes(text)
         self._text = sanitized_text
@@ -75,6 +91,7 @@ class Typography:
         self._adjust_spacing = adjust_spacing
         self._use_kerning = use_kerning
         self._use_ligartures = use_ligatures
+        self._style_liagtures = style_ligatures
 
     @classmethod
     def max_overlap(cls, a: Glyph, b: Glyph) -> int:
@@ -234,15 +251,6 @@ class Typography:
         lengths.append(length)
         return offsets, lengths
 
-    def style_borders(self, width: int) -> List[int]:
-        borders = [0, int]
-        for span in self._spans:
-            if span.start < width:
-                borders.append(span.start)
-            if span.end < width:
-                borders.append(span.end)
-        return list(sorted(set(borders)))
-
     def flatten_spans(self, console: Console) -> List[MutableSpan]:
         def combine_styles(styles: Iterable[Union[Style, str]]) -> Optional[Style]:
             get_style = partial(console.get_style, default=Style.null())
@@ -271,6 +279,74 @@ class Typography:
             )
             if style:
                 result.append(MutableSpan(pos, pos, style))
+        return result
+
+    def glyph_borders(self, text: str) -> List[int]:
+        result = list(range(len(text)))
+        if not (self._use_ligartures and self._font.ligatures()):
+            return result
+        ligatures = reversed(sorted(self._font.ligatures(), key=len))
+        for ligature in re.finditer("|".join(ligatures), text):
+            start, end = ligature.span()
+            for d in range(start + 1, end):
+                result.remove(d)
+        return result
+
+    def style_borders(
+        self, console: Console, width: int
+    ) -> List[Tuple[int, Optional[Style]]]:
+        def combine_styles(styles: Iterable[Union[Style, str]]) -> Optional[Style]:
+            get_style = partial(console.get_style, default=Style.null())
+            style_list = list(styles)
+            if not style_list:
+                return None
+            return Style.combine(get_style(d) for d in style_list)
+
+        styles: List[Union[Style, str]] = []
+        borders: Dict[int, List[Tuple[int, int]]] = {}
+        for idx, span in enumerate(self._spans):
+            borders[span.start] = borders.get(span.start, []) + [(1, idx)]
+            borders[span.end] = borders.get(span.end, []) + [(-1, idx)]
+            styles.append(span.style)
+
+        stack: List[int] = []
+        result: List[Tuple[int, Optional[Style]]] = []
+        for pos in sorted(borders):
+            for direction, idx in sorted(borders[pos]):
+                if direction > 0:
+                    stack.append(idx)
+                else:
+                    stack.remove(idx)
+            if pos < width:
+                result.append(
+                    (pos, combine_styles(styles[d] for d in stack if styles[d]))
+                )
+        if 0 not in borders:
+            result.insert(0, (0, None))
+        return result
+
+    def style_segments(
+        self, text: str, console: Console
+    ) -> List[Tuple[str, Optional[Style]]]:
+        glyphs = self.glyph_borders(text)
+        styles = self.style_borders(console, len(text))
+        if self._use_ligartures:
+            corrected = {}
+            for pos, style in styles:
+                if pos in glyphs:
+                    corrected[pos] = style
+                else:
+                    prv, nxt = neighbours(glyphs, pos)
+                    if self._style_liagtures == "last":
+                        corrected[prv] = style
+                    else:
+                        corrected[nxt] = style
+        else:
+            corrected = dict(styles)
+        result = []
+        segment_ends = list(corrected.keys())[1:] + [(len(text))]
+        for (start, style), end in zip(corrected.items(), segment_ends):
+            result.append((text[start:end], style))
         return result
 
     def expand_spans(self, spans: List[MutableSpan], width: int) -> List[MutableSpan]:
@@ -335,7 +411,9 @@ class Typography:
             underline=_bg.underline,
         )
 
-    def _justify_full(self, width: int, line: str, spans: List[MutableSpan]):
+    def _justify_full(
+        self, width: int, line: str, spans: List[Tuple[str, Optional[Style]]]
+    ) -> List[Tuple[str, Optional[Style]]]:
         space_width = self._font._space_width
         line = line.rstrip()
         line_width = self.rendered_width(line)
@@ -349,30 +427,34 @@ class Typography:
                 spaces[len(spaces) - index - 1] += 1
                 num_spaces += 1
                 index = (index + 1) % len(spaces)
-        adjusted_spans = []
-        for span in spans:
-            spaces_before_start = line[: span.start].count(" ")
-            spaces_before_end = line[: span.end].count(" ")
-            adjusted_spans.append(
-                MutableSpan(
-                    span.start
-                    + sum(spaces[:spaces_before_start])
-                    - spaces_before_start,
-                    span.end + sum(spaces[:spaces_before_end]) - spaces_before_end,
-                    span.style,
-                )
-            )
         adjusted_line = "".join(
             word + (" " * space) for word, space in zip(words, spaces + [0])
         )
-        return (adjusted_line, adjusted_spans)
+        result = []
+        pos = 0
+        for txt, style in spans:
+            end = pos + len(txt)
+            spaces_before_pos = line[:pos].count(" ")
+            spaces_before_end = line[:end].count(" ")
+            _pos = pos + sum(spaces[:spaces_before_pos]) - spaces_before_pos
+            _end = end + sum(spaces[:spaces_before_end]) - spaces_before_end
+            result.append((adjusted_line[_pos:_end], style))
+            pos = end
+        return result
+
+    def should_overlap(self, a: Optional[str], b: Optional[str]) -> bool:
+        if not a or not b:
+            return False
+        return (
+            self._use_kerning and a not in NON_OVERLAPPING and b not in NON_OVERLAPPING
+        )
 
     def render(self, console: "Console") -> Iterable["Segment"]:
         line_height = self._font._line_height
         letter_spacing = self._font.letter_spacing
         for line in self._text.splitlines():
             # Flatten style spans
-            _spans = self.flatten_spans(console)
+            segments = self.style_segments(line, console)
             # Right-strip if appropriate for justify method
             if self.justify in ["right", "center", "justify"]:
                 line = line.rstrip()
@@ -385,59 +467,56 @@ class Typography:
             else:
                 indent = 0
             if self.justify == "full":
-                line, _spans = self._justify_full(console.width, line, _spans)
-            # Add empty spans in all gaps
-            _spans = self.expand_spans(_spans, len(line))
+                segments = self._justify_full(console.width, line, segments)
             # Prepapre accumulators and apply indents
             row_spans = [[MutableSpan(0, 0, None)] for _ in range(line_height)]
             row_chars = ["" + " " * indent] * line_height
-            current_span: MutableSpan = _spans[0]
-            for pos, seg in self.split_glyphs(line).items():
-                last_char = line[pos - 1] if pos else " "
-                letter = self._font.get(seg)
-                # Calculate spacing to fragment
-                spacing = letter_spacing + self._adjust_spacing
-                if (
-                    self._use_kerning
-                    and last_char not in NON_OVERLAPPING
-                    and seg not in NON_OVERLAPPING
-                ):
-                    spacing -= self.max_overlap(row_chars, letter)
-                # Find relevant style spans
-                leaving = current_span.end < pos + len(seg)
-                entering = [
-                    span for span in _spans if pos <= span.start < pos + len(seg)
-                ]
-                entering_span = entering[-1] if entering else None
+            last_char = ""
+            last_style = None
+            for segment, segment_style in segments:
+                if not segment:
+                    continue
+                if self._use_ligartures:
+                    segment_chars = list(self.split_glyphs(segment).values())
+                else:
+                    segment_chars = list(segment)
+                # Render fragment
+                fragment = []
+                fragment_char = None
+                for char in segment_chars:
+                    letter = self._font.get(char)
+                    if fragment_char is None:
+                        fragment = letter
+                    else:
+                        spacing = letter_spacing + self._adjust_spacing
+                        if self.should_overlap(fragment_char, char):
+                            spacing -= self.max_overlap(fragment, letter)
+                        fragment = self.merge_glyphs(fragment, letter, spacing)
+                    fragment_char = char
+                fragment_spacing = letter_spacing + self._adjust_spacing
+                if self.should_overlap(last_char, segment[0]):
+                    fragment_spacing -= self.max_overlap(row_chars, fragment)
+                last_char = fragment_char
                 # Determine if styles overlap
                 split_styles = (
-                    leaving
-                    and (
-                        current_span.has_background()
-                        or (entering_span and entering_span.has_background())
-                    )
-                    and spacing != 0
-                )
+                    has_background(segment_style) or has_background(last_style)
+                ) and fragment_spacing != 0
                 # Calculate offsets
-                bg_offsets = self._bg_offsets(spacing, row_chars, letter)
-                fg_offsets = self._fg_offsets(spacing, row_chars, letter)
+                bg_offsets = self._bg_offsets(fragment_spacing, row_chars, fragment)
+                fg_offsets = self._fg_offsets(fragment_spacing, row_chars, fragment)
                 if split_styles:
                     # Add mixed styles for overlap
                     for d in range(len(row_spans)):
                         row_spans[d][-1].end = len(row_chars[d]) + min(
                             fg_offsets[d], bg_offsets[d]
                         )
-                        # Fragment overlaps letter
+                        # Fragment overlaps segment
                         if fg_offsets[d] > bg_offsets[d]:
                             row_spans[d].append(
                                 MutableSpan(
                                     len(row_chars[d]) + bg_offsets[d],
                                     len(row_chars[d]) + fg_offsets[d],
-                                    current_span.style
-                                    if not entering_span
-                                    else self._overlay_styles(
-                                        current_span.style, entering_span.style
-                                    ),
+                                    self._overlay_styles(last_style, segment_style),
                                 )
                             )
                         # Letter overlaps fragment
@@ -446,34 +525,29 @@ class Typography:
                                 MutableSpan(
                                     len(row_chars[d]) + fg_offsets[d],
                                     len(row_chars[d]) + bg_offsets[d],
-                                    current_span.style
-                                    if not entering_span
-                                    else self._overlay_styles(
-                                        entering_span.style, current_span.style
-                                    ),
+                                    self._overlay_styles(segment_style, last_style),
                                 )
                             )
                 else:
                     for d in range(len(row_spans)):
                         row_spans[d][-1].end = len(row_chars[d]) + fg_offsets[d]
-                if entering_span:
-                    # Set new style span
-                    current_span = entering_span
-                    for d in range(len(row_spans)):
-                        row_spans[d].append(
-                            MutableSpan(
-                                len(row_chars[d])
-                                + (
-                                    max(bg_offsets[d], fg_offsets[d])
-                                    if split_styles
-                                    else fg_offsets[d]
-                                ),
-                                len(row_chars[d]) + len(letter[d]),
-                                current_span.style,
-                            )
+
+                for d in range(len(row_spans)):
+                    row_spans[d].append(
+                        MutableSpan(
+                            len(row_chars[d])
+                            + (
+                                max(bg_offsets[d], fg_offsets[d])
+                                if split_styles
+                                else fg_offsets[d]
+                            ),
+                            len(row_chars[d]) + len(fragment[d]),
+                            segment_style,
                         )
+                    )
                 # Add current letter/ligature to result
-                row_chars = self.merge_glyphs(row_chars, letter, spacing)
+                row_chars = self.merge_glyphs(row_chars, fragment, fragment_spacing)
+                last_style = segment_style
             # Truncate
             row_chars = [row[: console.width] for row in row_chars]
             # Right-pad if appropriate for justify method
@@ -482,9 +556,8 @@ class Typography:
                     row + " " * (console.width - len(row)) for row in row_chars
                 ]
             # Adjust last style spans
-            if current_span:
-                for row in row_spans:
-                    row[-1].end = len(row_chars[0])
+            for row in row_spans:
+                row[-1].end = len(row_chars[0])
             # Resolve span overlay
             row_spans = [self.resolve_spans(spans) for spans in row_spans]
             # Render result
