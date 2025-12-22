@@ -33,10 +33,13 @@ def _leading(line: str):
     return len(line) - len(line.lstrip())
 
 
-def neighbours(numbers: List[int], target: int) -> Tuple[int, int]:
+def neighbours(numbers: List[int], target: int) -> Tuple[Optional[int], Optional[int]]:
     right = bisect.bisect_right(numbers, target)
     left = right - 1
-    return (numbers[max(left, 0)], numbers[min(right, len(numbers) - 1)])
+    return (
+        numbers[left] if left >= 0 else None,
+        numbers[right] if right < len(numbers) else None,
+    )
 
 
 def has_background(style: Optional[Style]):
@@ -341,9 +344,9 @@ class Typography:
                     corrected[pos] = style
                 else:
                     prv, nxt = neighbours(glyphs, pos)
-                    if self._style_ligatures == "last":
+                    if prv is not None and self._style_ligatures == "last":
                         corrected[prv] = style
-                    else:
+                    elif nxt is not None:
                         corrected[nxt] = style
         else:
             corrected = dict(styles)
