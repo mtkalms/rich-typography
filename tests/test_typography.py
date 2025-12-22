@@ -249,6 +249,36 @@ def test_mask_styles() -> None:
     assert_markup(result, expected)
 
 
+def test_ligatures_enabled() -> None:
+    markup = "fira"
+    expected = MarkupResult(
+        "╭╮   ",
+        "┼┐┌╮╮",
+        "│││╭┤",
+        "╵╵╵╰┘",
+        "     ",
+    )
+    result = Typography.from_text(
+        Text.from_markup(markup), font=OVERLAP, use_ligatures=True
+    )
+    assert_markup(result, expected)
+
+
+def test_ligatures_disabled() -> None:
+    markup = "fira"
+    expected = MarkupResult(
+        "╭╮.    ",
+        "┼ ╷┌╮┌╮",
+        "│ ││ ╭┤",
+        "╵ ╵╵ ╰┘",
+        "       ",
+    )
+    result = Typography.from_text(
+        Text.from_markup(markup), font=OVERLAP, use_ligatures=False
+    )
+    assert_markup(result, expected)
+
+
 def test_ligature_style_first() -> None:
     markup = "[red]f[/red][blue]ir[/blue][green]a[/green]"
     expected = MarkupResult(
