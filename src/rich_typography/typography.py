@@ -57,11 +57,6 @@ class MutableSpan:
     def __repr__(self) -> str:
         return f"<{self.start}, {self.end}>"
 
-    def has_background(self):
-        if not self.style or not self.style.bgcolor:
-            return False
-        return self.style.bgcolor != ColorType.STANDARD
-
 
 class Typography:
     def __init__(
@@ -258,36 +253,6 @@ class Typography:
         lengths.append(length)
         return offsets, lengths
 
-    def flatten_spans(self, console: Console) -> List[MutableSpan]:
-        def combine_styles(styles: Iterable[Union[Style, str]]) -> Optional[Style]:
-            get_style = partial(console.get_style, default=Style.null())
-            style_list = list(styles)
-            if not style_list:
-                return None
-            return Style.combine(get_style(d) for d in style_list)
-
-        spans = []
-        styles: List[Union[Style, str]] = []
-        for idx, span in enumerate(self._spans):
-            spans.append((span.start, 1, idx))
-            spans.append((span.end, -1, idx))
-            styles.append(span.style)
-        stack: List[int] = []
-        result: List[MutableSpan] = []
-        for pos, direction, idx in sorted(spans):
-            if direction > 0:
-                stack.append(idx)
-            else:
-                stack.remove(idx)
-            if result and result[-1].start == result[-1].end:
-                result[-1].end = pos
-            style: Optional[Style] = combine_styles(
-                styles[d] for d in stack if styles[d]
-            )
-            if style:
-                result.append(MutableSpan(pos, pos, style))
-        return result
-
     def glyph_borders(self, text: str) -> List[int]:
         result = list(range(len(text)))
         if not (self._use_ligartures and self._font.ligatures()):
@@ -355,20 +320,6 @@ class Typography:
         for (start, style), end in zip(corrected.items(), segment_ends):
             result.append((text[start:end], style))
         return result
-
-    def expand_spans(self, spans: List[MutableSpan], width: int) -> List[MutableSpan]:
-        if not spans:
-            return [MutableSpan(0, width, None)]
-        expanded_spans = []
-        if spans[0].start != 0:
-            expanded_spans.append(MutableSpan(0, spans[0].start, None))
-        for first, second in zip(spans[:-1], spans[1:]):
-            expanded_spans.append(first)
-            expanded_spans.append(MutableSpan(first.end, second.start, None))
-        expanded_spans.append(spans[-1])
-        if expanded_spans[-1].end < width:
-            expanded_spans.append(MutableSpan(expanded_spans[-1].end, width, None))
-        return expanded_spans
 
     def resolve_spans(self, spans: List[MutableSpan]):
         last = None
@@ -460,7 +411,7 @@ class Typography:
         line_height = self._font._line_height
         letter_spacing = self._font.letter_spacing
         for line in self._text.splitlines():
-            # Flatten style spans
+            # Align style borders to glyphs
             fragments = self.style_fragments(line, console)
             # Right-strip if appropriate for justify method
             if self.justify in ["right", "center", "justify"]:
@@ -473,6 +424,7 @@ class Typography:
                 indent = int((console.width - line_width) // 2)
             else:
                 indent = 0
+            # Adjust style borders
             if self.justify == "full":
                 fragments = self._justify_full(console.width, line, fragments)
             # Prepapre accumulators and apply indents
