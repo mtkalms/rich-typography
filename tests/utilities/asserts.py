@@ -14,5 +14,6 @@ def assert_markup(
     if preview:
         lines_a = rendered_a.splitlines()
         lines_b = rendered_b.splitlines()
+        print()
         print("\n".join(a + "\t" + b for a, b in zip_longest(lines_a, lines_b)))
     assert rendered_a == rendered_b
