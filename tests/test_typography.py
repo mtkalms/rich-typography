@@ -247,3 +247,33 @@ def test_mask_styles() -> None:
     )
     result = Typography.from_text(Text.from_markup(markup), font=OVERLAP)
     assert_markup(result, expected)
+
+
+def test_ligature_style_first() -> None:
+    markup = "[red]f[/red][blue]ir[/blue][green]a[/green]"
+    expected = MarkupResult(
+        "[red]╭╮[/red][blue]   [/blue]",
+        "[red]┼┐[/red][blue]┌╮╮[/blue]",
+        "[red]││[/red][blue]│╭┤[/blue]",
+        "[red]╵╵[/red][blue]╵╰┘[/blue]",
+        "[red]  [/red][blue]   [/blue]",
+    )
+    result = Typography.from_text(
+        Text.from_markup(markup), font=OVERLAP, style_ligatures="first"
+    )
+    assert_markup(result, expected)
+
+
+def test_ligature_style_last() -> None:
+    markup = "[red]f[/red][blue]ir[/blue][green]a[/green]"
+    expected = MarkupResult(
+        "[blue]╭╮[/blue][green]   [/green]",
+        "[blue]┼┐[/blue][green]┌╮╮[/green]",
+        "[blue]││[/blue][green]│╭┤[/green]",
+        "[blue]╵╵[/blue][green]╵╰┘[/green]",
+        "[blue]  [/blue][green]   [/green]",
+    )
+    result = Typography.from_text(
+        Text.from_markup(markup), font=OVERLAP, style_ligatures="last"
+    )
+    assert_markup(result, expected)
