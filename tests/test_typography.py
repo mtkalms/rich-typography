@@ -249,6 +249,36 @@ def test_mask_styles() -> None:
     assert_markup(result, expected)
 
 
+def test_underline_style() -> None:
+    markup = "m[underline]ini cigar[/underline]s"
+    expected = MarkupResult(
+        "   .  .   .        ",
+        "┌┬╮╷┌╮╷ ╭┐╷╭┐┌╮┌╮╭┐",
+        "│││││││ │ │││╭┤│ ╰╮",
+        "╵╵╵╵╵╵╵ ╰╴╵╰┤╰┘╵ └╯",
+        "   ▔▔▔▔▔▔╰──╯▔▔▔▔  ",
+    )
+    result = Typography.from_text(
+        Text.from_markup(markup), font=OVERLAP, use_ligatures=False
+    )
+    assert_markup(result, expected, True)
+
+
+def test_underline_ligatures_style() -> None:
+    markup = "f[underline]ini figar[/underline]o"
+    expected = MarkupResult(
+        "╭╮  . ╭╮       ",
+        "┼┐┌╮╷ ┼┐╭┐┌╮┌┬╮",
+        "│││││ ││││╭┤│││",
+        "╵╵╵╵╵ ╵╵╰┤╰┘╵╰╯",
+        "  ▔▔▔▔╰──╯▔▔▔▔▔",
+    )
+    result = Typography.from_text(
+        Text.from_markup(markup), font=OVERLAP, use_ligatures=True
+    )
+    assert_markup(result, expected, True)
+
+
 def test_ligatures_enabled() -> None:
     markup = "fira"
     expected = MarkupResult(
