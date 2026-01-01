@@ -24,6 +24,8 @@ import bisect
 
 LigatureStyleMethod = Literal["first", "last"]
 
+DEFAULT_JUSTIFY: "JustifyMethod" = "default"
+
 
 def _trailing(line: str):
     return len(line) - len(line.rstrip())
@@ -204,13 +206,17 @@ class Typography:
     def wrap(
         self,
         width: int,
+        *,
+        tab_size: int = 8,
+        no_wrap: Optional[bool] = None,
     ) -> Iterable["Typography"]:
+        no_wrap = bool(no_wrap or self.no_wrap)
         lines = Lines()
         text = self.to_text()
         for line in text.split(allow_blank=True):
             if "\t" in line:
-                line.expand_tabs(self.tab_size)
-            if self.no_wrap:
+                line.expand_tabs(tab_size)
+            if no_wrap:
                 new_lines = [line]
             else:
                 offsets, _ = self.divide(str(line), width)
@@ -407,25 +413,33 @@ class Typography:
             self._use_kerning and a not in NON_OVERLAPPING and b not in NON_OVERLAPPING
         )
 
-    def render(self, console: "Console") -> Iterable["Segment"]:
+    def render(
+        self,
+        console: "Console",
+        *,
+        justify: Optional["JustifyMethod"] = None,
+    ) -> Iterable["Segment"]:
+        wrap_justify = justify or self.justify or DEFAULT_JUSTIFY
         line_height = self._font._line_height
         letter_spacing = self._font.letter_spacing
         for line in self._text.splitlines():
             # Align style borders to glyphs
             fragments = self.style_fragments(line, console)
             # Right-strip if appropriate for justify method
-            if self.justify in ["right", "center", "justify"]:
+            if wrap_justify in ["right", "center", "justify"]:
                 line = line.rstrip()
             # Apply justify
+            # Note: we do this here, because the length of a rendered space can
+            # be other than 1, and indents cannot be expressed in text spaces.
             line_width = self.rendered_width(line)
-            if self.justify == "right":
+            if wrap_justify == "right":
                 indent = int(console.width - line_width)
-            elif self.justify == "center":
+            elif wrap_justify == "center":
                 indent = int((console.width - line_width) // 2)
             else:
                 indent = 0
             # Adjust style borders
-            if self.justify == "full":
+            if wrap_justify == "full":
                 fragments = self._justify_full(console.width, line, fragments)
             # Prepapre accumulators and apply indents
             row_spans = [[MutableSpan(0, 0, None)] for _ in range(line_height)]
@@ -534,6 +548,13 @@ class Typography:
     def __rich_console__(
         self, console: Console, options: ConsoleOptions
     ) -> RenderResult:
-        lines = self.wrap(console.width)
+        tab_size = console.tab_size if self.tab_size is None else self.tab_size
+        no_wrap = bool(self.no_wrap or options.no_wrap)
+        justify = self.justify or options.justify or DEFAULT_JUSTIFY
+        lines = self.wrap(
+            width=console.width,
+            tab_size=tab_size or 8,
+            no_wrap=no_wrap,
+        )
         for line in lines:
-            yield from line.render(console)
+            yield from line.render(console=console, justify=justify)

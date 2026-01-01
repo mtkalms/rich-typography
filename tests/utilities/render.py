@@ -7,7 +7,7 @@ from rich.console import Console, RenderableType, JustifyMethod
 def render_ansi(
     renderable: RenderableType,
     width: Optional[int] = 80,
-    no_wrap: Optional[bool] = True,
+    no_wrap: Optional[bool] = False,
     justify: JustifyMethod = "default",
 ) -> str:
     file = io.StringIO()
