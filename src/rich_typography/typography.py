@@ -523,7 +523,7 @@ class Typography:
             # Truncate
             row_chars = [row[: console.width] for row in row_chars]
             # Right-pad if appropriate for justify method
-            if self.justify and self.justify != "default":
+            if wrap_justify and wrap_justify != "default":
                 row_chars = [
                     row + " " * (console.width - len(row)) for row in row_chars
                 ]
