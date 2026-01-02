@@ -16,15 +16,19 @@ def assert_markup(
     rendered_a = render_ansi(renderable, justify=justify)
     rendered_b = render_ansi(Text.from_markup(markup))
     if preview:
-        lines_a = rendered_a.splitlines()
-        lines_b = rendered_b.splitlines()
-        # Get max line length (without ANSI codes)
-        max_len = max(len(Text.from_ansi(a)) for a in lines_a)
-        print()
-        print(
-            "\n".join(
-                f'"{a}"'.ljust(max_len + 2) + f'\t"{b}"'
-                for a, b in zip_longest(lines_a, lines_b)
-            )
-        )
+        _preview_ansi(rendered_a, rendered_b)
     assert rendered_a == rendered_b, message
+
+
+def _preview_ansi(a: str, b: str):
+    lines_a = a.splitlines()
+    lines_b = b.splitlines()
+    # Get max line length (without ANSI codes)
+    max_len = max(len(Text.from_ansi(a)) for a in lines_a)
+    print("\nPreview:")
+    print(
+        "\n".join(
+            f'"{a}"'.ljust(max_len + 2) + f'\t"{b}"'
+            for a, b in zip_longest(lines_a, lines_b)
+        )
+    )

@@ -271,14 +271,12 @@ def test_justify_full_with_styles() -> None:
         Typography.from_text(Text.from_markup(text, justify="full"), font=OVERLAP),
         expected,
         "Justify full through Text failed.",
-        preview=True,
     )
     assert_markup(
         Typography.from_text(Text.from_markup(text), font=OVERLAP),
         expected,
         "Justify full through console failed.",
         justify="full",
-        preview=True,
     )
 
 
