@@ -67,7 +67,17 @@ def test_justify_default() -> None:
         "╵╵╵╰╯╰╰╵╰╵╰┘·",
         "             ",
     )
-    assert_markup(Typography(text, font=OVERLAP, justify="default"), expected)
+    assert_markup(
+        Typography(text, font=OVERLAP, justify="default"),
+        expected,
+        "Justify default through Typogrpahy failed.",
+    )
+    assert_markup(
+        Typography(text, font=OVERLAP),
+        expected,
+        "Justify default through console failed.",
+        justify="default",
+    )
 
 
 def test_justify_left() -> None:
@@ -97,7 +107,17 @@ def test_justify_left() -> None:
         "╵╵╵╰╯╰╰╵╰╵╰┘·                                                                   ",
         "                                                                                ",
     )
-    assert_markup(Typography(text, font=OVERLAP, justify="left"), expected)
+    assert_markup(
+        Typography(text, font=OVERLAP, justify="left"),
+        expected,
+        "Justify left through Typogrpahy failed.",
+    )
+    assert_markup(
+        Typography(text, font=OVERLAP),
+        expected,
+        "Justify left through console failed.",
+        justify="left",
+    )
 
 
 def test_justify_right() -> None:
@@ -127,7 +147,17 @@ def test_justify_right() -> None:
         "                                                                   ╵╵╵╰╯╰╰╵╰╵╰┘·",
         "                                                                                ",
     )
-    assert_markup(Typography(text, font=OVERLAP, justify="right"), expected)
+    assert_markup(
+        Typography(text, font=OVERLAP, justify="right"),
+        expected,
+        "Justify right through Typogrpahy failed.",
+    )
+    assert_markup(
+        Typography(text, font=OVERLAP),
+        expected,
+        "Justify right through console failed.",
+        justify="right",
+    )
 
 
 def test_justify_center() -> None:
@@ -157,7 +187,17 @@ def test_justify_center() -> None:
         "                                 ╵╵╵╰╯╰╰╵╰╵╰┘·                                  ",
         "                                                                                ",
     )
-    assert_markup(Typography(text, font=OVERLAP, justify="center"), expected)
+    assert_markup(
+        Typography(text, font=OVERLAP, justify="center"),
+        expected,
+        "Justify center through Typography failed.",
+    )
+    assert_markup(
+        Typography(text, font=OVERLAP),
+        expected,
+        "Justify center through console failed.",
+        justify="center",
+    )
 
 
 def test_justify_full() -> None:
@@ -187,7 +227,17 @@ def test_justify_full() -> None:
         "╵╵╵╰╯╰╰╵╰╵╰┘·                                                                   ",
         "                                                                                ",
     )
-    assert_markup(Typography(text, font=OVERLAP, justify="full"), expected)
+    assert_markup(
+        Typography(text, font=OVERLAP, justify="full"),
+        expected,
+        "Justify full through Typogrpahy failed.",
+    )
+    assert_markup(
+        Typography(text, font=OVERLAP),
+        expected,
+        "Justify full through console failed.",
+        justify="full",
+    )
 
 
 def test_justify_full_with_styles() -> None:
@@ -220,6 +270,15 @@ def test_justify_full_with_styles() -> None:
     assert_markup(
         Typography.from_text(Text.from_markup(text, justify="full"), font=OVERLAP),
         expected,
+        "Justify full through Text failed.",
+        preview=True,
+    )
+    assert_markup(
+        Typography.from_text(Text.from_markup(text), font=OVERLAP),
+        expected,
+        "Justify full through console failed.",
+        justify="full",
+        preview=True,
     )
 
 
@@ -261,7 +320,7 @@ def test_underline_style() -> None:
     result = Typography.from_text(
         Text.from_markup(markup), font=OVERLAP, use_ligatures=False
     )
-    assert_markup(result, expected, True)
+    assert_markup(result, expected)
 
 
 def test_underline_ligatures_style() -> None:
@@ -276,7 +335,7 @@ def test_underline_ligatures_style() -> None:
     result = Typography.from_text(
         Text.from_markup(markup), font=OVERLAP, use_ligatures=True
     )
-    assert_markup(result, expected, True)
+    assert_markup(result, expected)
 
 
 def test_ligatures_enabled() -> None:
