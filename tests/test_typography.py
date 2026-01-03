@@ -74,7 +74,6 @@ def test_overflow_fold() -> None:
         expected,
         "Overflow fold through Typogrpahy failed.",
         width=21,
-        preview=True,
     )
     assert_markup(
         Typography(text, font=OVERLAP),
@@ -82,7 +81,70 @@ def test_overflow_fold() -> None:
         "Overflow fold through console failed.",
         width=21,
         overflow="fold",
-        preview=True,
+    )
+
+
+def test_overflow_ellipsis() -> None:
+    text = "Voluptates nihil cumque nemo pariatur veniam ipsa sint iusto"
+    expected = MarkupResult(
+        "╷╷  ╷       ",
+        "││╭╮│╷╷╭╮   ",
+        "│││││││││   ",
+        "╰┘╰╯╰╰╯├╯···",
+        "       ╵    ",
+        "  .╷ .╷ ",
+        "┌╮╷├╮╷│ ",
+        "│││││││ ",
+        "╵╵╵╵╵╵╰ ",
+        "        ",
+        "            ",
+        "╭┐╷╷┌┬╮╭╮   ",
+        "│ │││││││   ",
+        "╰╴╰╯╵╵╵╰┤···",
+        "        ╵   ",
+        "          ",
+        "┌╮╭╮┌┬╮╭╮ ",
+        "││├┘│││││ ",
+        "╵╵╰╴╵╵╵╰╯ ",
+        "          ",
+        "     .  ╷   ",
+        "╭╮┌╮┌┐┌╮┼   ",
+        "││╭┤││╭┤│   ",
+        "├╯╰┘╵╵╰┘╰···",
+        "╵           ",
+        "      .     ",
+        "╷╷╭╮┌╮╷┌╮   ",
+        "││├┘│││╭┤   ",
+        "╰┘╰╴╵╵╵╰┘···",
+        "            ",
+        ".       ",
+        "╷╭╮╭┐┌╮ ",
+        "│││╰╮╭┤ ",
+        "╵├╯└╯╰┘ ",
+        " ╵      ",
+        "  .  ╷ ",
+        "╭┐╷┌╮┼ ",
+        "╰╮││││ ",
+        "└╯╵╵╵╰ ",
+        "       ",
+        ".    ╷  ",
+        "╷╷╷╭┐┼╭╮",
+        "│││╰╮│││",
+        "╵╰╯└╯╰╰╯",
+        "        ",
+    )
+    assert_markup(
+        Typography(text, font=OVERLAP, overflow="ellipsis"),
+        expected,
+        "Overflow ellipsis through Typogrpahy failed.",
+        width=12,
+    )
+    assert_markup(
+        Typography(text, font=OVERLAP),
+        expected,
+        "Overflow ellipsis through console failed.",
+        width=12,
+        overflow="ellipsis",
     )
 
 
