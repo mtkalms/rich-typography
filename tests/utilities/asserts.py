@@ -12,9 +12,10 @@ def assert_markup(
     message: Optional[str] = None,
     preview: Optional[bool] = False,
     justify: JustifyMethod = "default",
+    width: int = 80,
 ) -> None:
-    rendered_a = render_ansi(renderable, justify=justify)
-    rendered_b = render_ansi(Text.from_markup(markup))
+    rendered_a = render_ansi(renderable, justify=justify, width=width)
+    rendered_b = render_ansi(Text.from_markup(markup), width=width)
     if preview:
         _preview_ansi(rendered_a, rendered_b)
     assert rendered_a == rendered_b, message
