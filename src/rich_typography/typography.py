@@ -25,6 +25,8 @@ import bisect
 LigatureStyleMethod = Literal["first", "last"]
 
 DEFAULT_JUSTIFY: "JustifyMethod" = "default"
+DEFAULT_OVERFLOW: "OverflowMethod" = "crop"
+# Should be: DEFAULT_OVERFLOW: "OverflowMethod" = "fold"
 
 
 def _trailing(line: str):
@@ -208,9 +210,11 @@ class Typography:
         width: int,
         *,
         tab_size: int = 8,
+        overflow: Optional["OverflowMethod"] = None,
         no_wrap: Optional[bool] = None,
     ) -> Iterable["Typography"]:
-        no_wrap = bool(no_wrap or self.no_wrap)
+        wrap_overflow = overflow or self.overflow or DEFAULT_OVERFLOW
+        no_wrap = bool(no_wrap or self.no_wrap) or wrap_overflow == "ignore"
         lines = Lines()
         text = self.to_text()
         for line in text.split(allow_blank=True):
@@ -219,7 +223,7 @@ class Typography:
             if no_wrap:
                 new_lines = [line]
             else:
-                offsets, _ = self.divide(str(line), width)
+                offsets, _ = self.divide(str(line), width, wrap_overflow == "fold")
                 new_lines = line.divide(offsets)
             for line in new_lines:
                 line.rstrip_end(width)
@@ -236,7 +240,21 @@ class Typography:
             for line in lines
         ]
 
-    def divide(self, text: str, width: int) -> Tuple[Iterable[int], Iterable[int]]:
+    def chop_cells(self, text: str, width: int) -> Iterable[str]:
+        result = []
+        lst, curr = 0, 1
+        while curr < len(text):
+            while curr < len(text) and self.rendered_width(text[lst:curr]) <= width:
+                curr += 1
+            result.append(text[lst:curr])
+            lst = curr
+        if lst < curr:
+            result.append(text[lst:curr])
+        return result
+
+    def divide(
+        self, text: str, width: int, fold: bool
+    ) -> Tuple[Iterable[int], Iterable[int]]:
         offsets = []
         lengths = []
         space_length = self._font.space_width()
@@ -244,17 +262,43 @@ class Typography:
         length = 0
         for word in text.split(" "):
             remaining = width - length
+            # Should be: remaining = width - length - space_length)
             word_length = self.rendered_width(word)
             if word_length >= remaining:
-                offsets.append(offset + 1)
-                lengths.append(length + space_length)
-                length = 0
-            if length > 0:
-                length += space_length
-            length += word_length
-            if offset > 0:
-                offset += 1
-            offset += len(word)
+                if fold and self.rendered_width(word[0]) < remaining:
+                    fold_offset = 1
+                    while self.rendered_width(word[: fold_offset + 1]) <= remaining:
+                        fold_offset += 1
+                    part = word[:fold_offset]
+                    part_length = self.rendered_width(part)
+                    if offset > 0:
+                        offset += 1
+                    offset += fold_offset
+                    if length > 0:
+                        length += space_length
+                    length += part_length
+                    # Chop up rest and add new lines
+                    for part in self.chop_cells(word[fold_offset:], width):
+                        offsets.append(offset)
+                        lengths.append(length)
+                        offset += len(part)
+                        length = self.rendered_width(part)
+                else:
+                    if length > 0:
+                        length += space_length
+                    lengths.append(length)
+                    length = word_length
+                    if offset > 0:
+                        offset += 1
+                    offsets.append(offset)
+                    offset += len(word)
+            else:
+                if length > 0:
+                    length += space_length
+                length += word_length
+                if offset > 0:
+                    offset += 1
+                offset += len(word)
         offsets.append(offset)
         lengths.append(length)
         return offsets, lengths
@@ -418,8 +462,10 @@ class Typography:
         console: "Console",
         *,
         justify: Optional["JustifyMethod"] = None,
+        overflow: Optional["OverflowMethod"] = None,
     ) -> Iterable["Segment"]:
         wrap_justify = justify or self.justify or DEFAULT_JUSTIFY
+        # wrap_overflow = overflow or self.overflow or DEFAULT_OVERFLOW
         line_height = self._font._line_height
         letter_spacing = self._font.letter_spacing
         for line in self._text.splitlines():
@@ -551,10 +597,12 @@ class Typography:
         tab_size = console.tab_size if self.tab_size is None else self.tab_size
         no_wrap = bool(self.no_wrap or options.no_wrap)
         justify = self.justify or options.justify or DEFAULT_JUSTIFY
-        lines = self.wrap(
+        overflow = self.overflow or options.overflow or DEFAULT_OVERFLOW
+        lines: Iterable["Typography"] = self.wrap(
             width=console.width,
             tab_size=tab_size or 8,
             no_wrap=no_wrap,
+            overflow=overflow,
         )
         for line in lines:
-            yield from line.render(console=console, justify=justify)
+            yield from line.render(console=console, justify=justify, overflow=overflow)
