@@ -1,6 +1,6 @@
 from itertools import zip_longest
 from typing import Optional
-from rich.console import RenderableType, JustifyMethod
+from rich.console import RenderableType, JustifyMethod, OverflowMethod
 from rich.text import Text
 
 from tests.utilities.render import render_ansi
@@ -11,10 +11,13 @@ def assert_markup(
     markup: str,
     message: Optional[str] = None,
     preview: Optional[bool] = False,
-    justify: JustifyMethod = "default",
+    justify: Optional[JustifyMethod] = None,
+    overflow: Optional[OverflowMethod] = None,
     width: int = 80,
 ) -> None:
-    rendered_a = render_ansi(renderable, justify=justify, width=width)
+    rendered_a = render_ansi(
+        renderable, justify=justify, overflow=overflow, width=width
+    )
     rendered_b = render_ansi(Text.from_markup(markup), width=width)
     if preview:
         _preview_ansi(rendered_a, rendered_b)

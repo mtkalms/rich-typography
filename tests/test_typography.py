@@ -73,8 +73,16 @@ def test_overflow_fold() -> None:
         Typography(text, font=OVERLAP, overflow="fold"),
         expected,
         "Overflow fold through Typogrpahy failed.",
-        preview=True,
         width=21,
+        preview=True,
+    )
+    assert_markup(
+        Typography(text, font=OVERLAP),
+        expected,
+        "Overflow fold through console failed.",
+        width=21,
+        overflow="fold",
+        preview=True,
     )
 
 
