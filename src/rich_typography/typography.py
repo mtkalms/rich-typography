@@ -205,6 +205,23 @@ class Typography:
             spans=self._spans[:],
         )
 
+    def set_cell_size(self, text: str, width: int) -> str:
+        while self.rendered_width(text) > width:
+            text = text[:-1]
+        return text
+
+    def truncate(self, max_width: int, *, overflow: Optional[OverflowMethod]) -> None:
+        _overflow = overflow or self.overflow or DEFAULT_OVERFLOW
+        if _overflow != "ignore":
+            length = self.rendered_width(self._text)
+            if length > max_width:
+                if _overflow == "ellipsis":
+                    ellipsis = "…" if "…" in self._font else "..."
+                    max_width -= self.rendered_width(ellipsis)
+                    self._text = self.set_cell_size(self._text, max_width) + ellipsis
+                else:
+                    self._text = self.set_cell_size(self._text, max_width)
+
     def wrap(
         self,
         width: int,
@@ -223,12 +240,12 @@ class Typography:
             if no_wrap:
                 new_lines = [line]
             else:
-                offsets, _ = self.divide(str(line), width, wrap_overflow == "fold")
+                offsets = self.divide(str(line), width, wrap_overflow == "fold")
                 new_lines = line.divide(offsets)
-            for line in new_lines:
-                line.rstrip_end(width)
+            # for line in new_lines:
+            #     line.rstrip_end(width)
             lines.extend(new_lines)
-        return [
+        typography_lines = [
             Typography.from_text(
                 line,
                 self._font,
@@ -239,6 +256,9 @@ class Typography:
             )
             for line in lines
         ]
+        for line in typography_lines:
+            line.truncate(width, overflow=overflow)
+        return typography_lines
 
     def chop_cells(self, text: str, width: int) -> Iterable[str]:
         result = []
@@ -252,11 +272,8 @@ class Typography:
             result.append(text[lst:curr])
         return result
 
-    def divide(
-        self, text: str, width: int, fold: bool
-    ) -> Tuple[Iterable[int], Iterable[int]]:
+    def divide(self, text: str, width: int, fold: bool) -> Iterable[int]:
         offsets = []
-        lengths = []
         space_length = self._font.space_width()
         offset = 0
         length = 0
@@ -280,13 +297,11 @@ class Typography:
                     # Chop up rest and add new lines
                     for part in self.chop_cells(word[fold_offset:], width):
                         offsets.append(offset)
-                        lengths.append(length)
                         offset += len(part)
                         length = self.rendered_width(part)
                 else:
                     if length > 0:
                         length += space_length
-                    lengths.append(length)
                     length = word_length
                     if offset > 0:
                         offset += 1
@@ -300,8 +315,7 @@ class Typography:
                     offset += 1
                 offset += len(word)
         offsets.append(offset)
-        lengths.append(length)
-        return offsets, lengths
+        return offsets
 
     def glyph_borders(self, text: str) -> List[int]:
         result = list(range(len(text)))
