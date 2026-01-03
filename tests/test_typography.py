@@ -40,6 +40,44 @@ def test_tabs() -> None:
     assert_markup(Typography("fort\ty", font=OVERLAP), expected)
 
 
+def test_overflow_fold() -> None:
+    text = "Voluptates nihil cumque nemo pariatur veniam ipsa sint iusto"
+    expected = MarkupResult(
+        "╷╷  ╷    ╷  ╷       .",
+        "││╭╮│╷╷╭╮┼┌╮┼╭╮╭┐ ┌╮╷",
+        "││││││││││╭┤│├┘╰╮ │││",
+        "╰┘╰╯╰╰╯├╯╰╰┘╰╰╴└╯ ╵╵╵",
+        "       ╵             ",
+        "╷ .╷                 ",
+        "├╮╷│ ╭┐╷╷┌┬╮╭╮╷╷╭╮ ┌╮",
+        "││││ │ │││││││││├┘ ││",
+        "╵╵╵╰ ╰╴╰╯╵╵╵╰┤╰╯╰╴ ╵╵",
+        "             ╵       ",
+        "             .  ╷    ",
+        "╭╮┌┬╮╭╮ ╭╮┌╮┌┐┌╮┼╷╷┌╮",
+        "├┘│││││ ││╭┤││╭┤││││ ",
+        "╰╴╵╵╵╰╯ ├╯╰┘╵╵╰┘╰╰╯╵ ",
+        "        ╵            ",
+        "      .      .       ",
+        "╷╷╭╮┌╮╷┌╮┌┬╮ ╷╭╮╭┐┌╮ ",
+        "││├┘│││╭┤│││ │││╰╮╭┤ ",
+        "╰┘╰╴╵╵╵╰┘╵╵╵ ╵├╯└╯╰┘ ",
+        "              ╵      ",
+        "  .  ╷ .    ╷  ",
+        "╭┐╷┌╮┼ ╷╷╷╭┐┼╭╮",
+        "╰╮││││ │││╰╮│││",
+        "└╯╵╵╵╰ ╵╰╯└╯╰╰╯",
+        "               ",
+    )
+    assert_markup(
+        Typography(text, font=OVERLAP, overflow="fold"),
+        expected,
+        "Overflow fold through Typogrpahy failed.",
+        preview=True,
+        width=21,
+    )
+
+
 def test_justify_default() -> None:
     text = (
         "Voluptates nihil cumque nemo pariatur veniam ipsa sint iusto, "
