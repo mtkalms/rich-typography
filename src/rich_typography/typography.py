@@ -25,8 +25,7 @@ import bisect
 LigatureStyleMethod = Literal["first", "last"]
 
 DEFAULT_JUSTIFY: "JustifyMethod" = "default"
-DEFAULT_OVERFLOW: "OverflowMethod" = "crop"
-# Should be: DEFAULT_OVERFLOW: "OverflowMethod" = "fold"
+DEFAULT_OVERFLOW: "OverflowMethod" = "fold"
 
 
 def _trailing(line: str):
@@ -281,7 +280,11 @@ class Typography:
             remaining = width - length - space_length
             word_length = self.rendered_width(word)
             if word_length > remaining:
-                if fold and self.rendered_width(word[0]) <= remaining:
+                if (
+                    fold
+                    and word_length > width
+                    and self.rendered_width(word[0]) <= remaining
+                ):
                     fold_offset = 1
                     while self.rendered_width(word[: fold_offset + 1]) <= remaining:
                         fold_offset += 1
