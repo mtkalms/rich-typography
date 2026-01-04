@@ -278,11 +278,10 @@ class Typography:
         offset = 0
         length = 0
         for word in text.split(" "):
-            remaining = width - length
-            # Should be: remaining = width - length - space_length)
+            remaining = width - length - space_length
             word_length = self.rendered_width(word)
-            if word_length >= remaining:
-                if fold and self.rendered_width(word[0]) < remaining:
+            if word_length > remaining:
+                if fold and self.rendered_width(word[0]) <= remaining:
                     fold_offset = 1
                     while self.rendered_width(word[: fold_offset + 1]) <= remaining:
                         fold_offset += 1
@@ -294,7 +293,6 @@ class Typography:
                     if length > 0:
                         length += space_length
                     length += part_length
-                    # Chop up rest and add new lines
                     for part in self.chop_cells(word[fold_offset:], width):
                         offsets.append(offset)
                         offset += len(part)
