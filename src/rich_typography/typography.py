@@ -301,18 +301,18 @@ class Typography:
                         offset += len(part)
                         length = self.rendered_width(part)
                 else:
-                    if length > 0:
+                    if length > 0 or not word:
                         length += space_length
                     length = word_length
-                    if offset > 0:
+                    if offset > 0 or not word:
                         offset += 1
                     offsets.append(offset)
                     offset += len(word)
             else:
-                if length > 0:
+                if length > 0 or not word:
                     length += space_length
                 length += word_length
-                if offset > 0:
+                if offset > 0 or not word:
                     offset += 1
                 offset += len(word)
         offsets.append(offset)
