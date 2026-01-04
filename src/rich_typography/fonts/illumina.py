@@ -53,5 +53,7 @@ ILLUMINA = Font("Illumina", UPPER | LOWER | DIGITS, LIGATURES)
 if __name__ == "__main__":
     from rich.console import Console
 
+    from rich_typography.typography import Typography
+
     console = Console()
-    console.print(ILLUMINA)
+    console.print(Typography("Illumina", font=ILLUMINA))
