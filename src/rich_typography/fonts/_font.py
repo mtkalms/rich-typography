@@ -20,7 +20,7 @@ class Font:
         self._name = name
         self._line_height = len(list(glyphs.values())[0])
         self.letter_spacing = letter_spacing
-        self._glyphs = glyphs | Glyphs(self.space(space_width, self._line_height), " ")
+        self._glyphs = glyphs | self.space(space_width, self._line_height)
         self._ligatures = ligatures or {}
         self._space_width = space_width
         self._baseline = baseline or self._line_height - 2
@@ -29,8 +29,8 @@ class Font:
         return self._space_width
 
     @classmethod
-    def space(cls, width: int, line_height: int) -> str:
-        return "\n".join([" " * width] * line_height)
+    def space(cls, width: int, line_height: int) -> Glyphs:
+        return Glyphs(" ", *([" " * width] * line_height))
 
     @classmethod
     def placeholder(cls, line_height: int) -> Glyph:

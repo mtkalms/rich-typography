@@ -1,16 +1,13 @@
+from itertools import zip_longest
 from typing import Dict, List, Union
 
 Glyph = List[str]
 
 
 class Glyphs(dict):
-    def __init__(self, glyphs: str, chars: Union[List[str], str]):
+    def __init__(self, chars: Union[List[str], str], *glyphs: str):
         # Ignore leading/trailing line breaks
-        if isinstance(glyphs, str):
-            _glyphs = glyphs.splitlines()
-        else:
-            _glyphs = glyphs
-        _glyphs = [g for g in _glyphs if g]
+        _glyphs = [g for g in glyphs if g]
         self._line_height = len(_glyphs)
         if len(chars) == 1:
             super().__init__({chars[0]: _glyphs})
@@ -29,6 +26,12 @@ class Glyphs(dict):
                 f"Line height missmatch: {other._line_height} != {self._line_height}"
             )
         return super().__or__(other)
+
+    def __str__(self) -> str:
+        result = " ".join(c.ljust(len(g[0])) for c, g in self.items())
+        for line in zip_longest(*self.values()):
+            result += "\n" + " ".join(line)
+        return result
 
     @classmethod
     def get_char_map(
