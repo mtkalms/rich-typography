@@ -187,6 +187,30 @@ def test_overflow_crop() -> None:
     )
 
 
+def test_overflow_ignore() -> None:
+    text = "Voluptates nihil cumque nemo pariatur veniam"
+    expected = MarkupResult(
+        "╷╷  ╷    ╷  ╷       .",
+        "││╭╮│╷╷╭╮┼┌╮┼╭╮╭┐ ┌╮╷",
+        "││││││││││╭┤│├┘╰╮ │││",
+        "╰┘╰╯╰╰╯├╯╰╰┘╰╰╴└╯ ╵╵╵",
+        "       ╵             ",
+    )
+    assert_markup(
+        Typography(text, font=OVERLAP, overflow="ignore"),
+        expected,
+        "Overflow ignore through Typogrpahy failed.",
+        width=21,
+    )
+    assert_markup(
+        Typography(text, font=OVERLAP),
+        expected,
+        "Overflow ignore through console failed.",
+        width=21,
+        overflow="ignore",
+    )
+
+
 def test_justify_default() -> None:
     text = (
         "Voluptates nihil cumque nemo pariatur veniam ipsa sint iusto, "
