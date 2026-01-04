@@ -14,9 +14,10 @@ def assert_markup(
     justify: Optional[JustifyMethod] = None,
     overflow: Optional[OverflowMethod] = None,
     width: int = 80,
+    no_wrap: Optional[bool] = None,
 ) -> None:
     rendered_a = render_ansi(
-        renderable, justify=justify, overflow=overflow, width=width
+        renderable, justify=justify, overflow=overflow, width=width, no_wrap=no_wrap
     )
     rendered_b = render_ansi(Text.from_markup(markup), width=width)
     if preview:
