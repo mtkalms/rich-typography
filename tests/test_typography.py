@@ -138,6 +138,55 @@ def test_overflow_ellipsis() -> None:
     )
 
 
+def test_overflow_crop() -> None:
+    text = "Voluptates nihil cumque nemo pariatur veniam"
+    expected = MarkupResult(
+        "╷╷  ╷    ╷  ",
+        "││╭╮│╷╷╭╮┼┌╮",
+        "││││││││││╭┤",
+        "╰┘╰╯╰╰╯├╯╰╰┘",
+        "       ╵    ",
+        "  .╷ .╷ ",
+        "┌╮╷├╮╷│ ",
+        "│││││││ ",
+        "╵╵╵╵╵╵╰ ",
+        "        ",
+        "           ",
+        "╭┐╷╷┌┬╮╭╮╷╷",
+        "│ │││││││││",
+        "╰╴╰╯╵╵╵╰┤╰╯",
+        "        ╵  ",
+        "          ",
+        "┌╮╭╮┌┬╮╭╮ ",
+        "││├┘│││││ ",
+        "╵╵╰╴╵╵╵╰╯ ",
+        "          ",
+        "     .  ╷  ",
+        "╭╮┌╮┌┐┌╮┼╷╷",
+        "││╭┤││╭┤│││",
+        "├╯╰┘╵╵╰┘╰╰╯",
+        "╵          ",
+        "      .     ",
+        "╷╷╭╮┌╮╷┌╮┌┬╮",
+        "││├┘│││╭┤│││",
+        "╰┘╰╴╵╵╵╰┘╵╵╵",
+        "            ",
+    )
+    assert_markup(
+        Typography(text, font=OVERLAP, overflow="crop"),
+        expected,
+        "Overflow crop through Typogrpahy failed.",
+        width=12,
+    )
+    assert_markup(
+        Typography(text, font=OVERLAP),
+        expected,
+        "Overflow crop through console failed.",
+        width=12,
+        overflow="crop",
+    )
+
+
 def test_justify_default() -> None:
     text = (
         "Voluptates nihil cumque nemo pariatur veniam ipsa sint iusto, "
