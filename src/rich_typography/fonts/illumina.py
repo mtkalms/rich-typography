@@ -42,7 +42,7 @@ LIGATURES = Glyphs(
 ILLUMINA = Font("Illumina", UPPER | LOWER | DIGITS, LIGATURES)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     from rich.console import Console
 
     from rich_typography.typography import Typography
