@@ -28,3 +28,8 @@ dev = [
     "pytest-cov>=7.0.0",
     "ruff>=0.14.4",
 ]
+
+[tool.coverage.run]
+omit = [
+    "tests/*",
+]
