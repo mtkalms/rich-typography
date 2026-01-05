@@ -6,12 +6,11 @@ Glyph = List[str]
 
 
 class Glyphs(dict):
-    """A collection of glyphs mapped to the rendered char.
-
+    """A glyph dictionary mapping single chars or groups of chars (ligatures) to glyphs.
     Args:
-        chars (Union[List[str], str]): List or string of chars in the same order as glyphs.
+        chars (Union[List[str], str]): String of chars or list of char groups in the same order as glyphs.
         *glyphs (str): Lines of concatenated glyphs, delimited by full column of separator char.
-        separator (str): Separator char used to separate individual glyphs.
+        separator (str): Separator char used to separate individual glyphs. Defaults to space.
 
     Raises:
         ValueError: Glyph lines are of unequal length.
