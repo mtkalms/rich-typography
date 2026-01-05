@@ -71,13 +71,15 @@ LIGATURES = Glyphs(
 )
 
 SEMISERIF = Font(
-    "Semi Serif", UPPER | LOWER | DIGITS | PUNCTUATION, LIGATURES, baseline=3
+    "Semi Serif",
+    UPPER | LOWER | DIGITS | PUNCTUATION,
+    ligatures=LIGATURES,
+    baseline=3,
 )
 
 
 if __name__ == "__main__":  # pragma: no cover
     from rich.console import Console
-
     from rich_typography.typography import Typography
 
     console = Console()

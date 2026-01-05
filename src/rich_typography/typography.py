@@ -123,9 +123,9 @@ class Typography:
             return dict(enumerate(text))
         glyphs: Dict[int, str] = {}
         last = 0
-        if not self._font.ligatures():
+        if not self._font.ligatures:
             return dict(enumerate(text))
-        ligatures = reversed(sorted(self._font.ligatures(), key=len))
+        ligatures = reversed(sorted(self._font.ligatures, key=len))
         for ligature in re.finditer("|".join(ligatures), text):
             start, end = ligature.span()
             glyphs |= dict(enumerate(text[last:start], last))
@@ -273,7 +273,7 @@ class Typography:
 
     def divide(self, text: str, width: int, fold: bool) -> Iterable[int]:
         offsets = []
-        space_length = self._font.space_width()
+        space_length = self._font.space_width
         offset = 0
         length = 0
         for word in text.split(" "):
@@ -320,9 +320,9 @@ class Typography:
 
     def glyph_borders(self, text: str) -> List[int]:
         result = list(range(len(text)))
-        if not (self._use_ligartures and self._font.ligatures()):
+        if not (self._use_ligartures and self._font.ligatures):
             return result
-        ligatures = reversed(sorted(self._font.ligatures(), key=len))
+        ligatures = reversed(sorted(self._font.ligatures, key=len))
         for ligature in re.finditer("|".join(ligatures), text):
             start, end = ligature.span()
             for d in range(start + 1, end):
@@ -386,7 +386,7 @@ class Typography:
             result.append((text[start:end], style))
         return result
 
-    def resolve_spans(self, spans: List[MutableSpan]):
+    def resolve_spans(self, spans: List[MutableSpan]) -> List[MutableSpan]:
         last = None
         result = []
         for span in reversed(spans):
@@ -411,7 +411,7 @@ class Typography:
         ]
 
     def _bg_offsets(self, spacing: int, fragment: Glyph, addition: Glyph) -> List[int]:
-        offsets = [0] * self._font._line_height
+        offsets = [0] * self._font.line_height
         for d in range(abs(spacing)):
             majority = sum(
                 (1 if fragment[row][-(d + 1)] not in " " else 0)
@@ -421,7 +421,7 @@ class Typography:
             if majority > 0:
                 break
             else:
-                offsets = [-(d + 1)] * self._font._line_height
+                offsets = [-(d + 1)] * self._font.line_height
         return offsets
 
     def _overlay_styles(self, fg: Optional[Style], bg: Optional[Style]):
@@ -437,7 +437,7 @@ class Typography:
     def _justify_full(
         self, width: int, line: str, spans: List[Tuple[str, Optional[Style]]]
     ) -> List[Tuple[str, Optional[Style]]]:
-        space_width = self._font._space_width
+        space_width = self._font.space_width
         line = line.rstrip()
         line_width = self.rendered_width(line)
         words = line.split(" ")
@@ -481,7 +481,7 @@ class Typography:
     ) -> Iterable["Segment"]:
         wrap_justify = justify or self.justify or DEFAULT_JUSTIFY
         # wrap_overflow = overflow or self.overflow or DEFAULT_OVERFLOW
-        line_height = self._font._line_height
+        line_height = self._font.line_height
         letter_spacing = self._font.letter_spacing
         for line in self._text.splitlines():
             # Align style borders to glyphs
@@ -595,13 +595,14 @@ class Typography:
             row_spans = [self.resolve_spans(spans) for spans in row_spans]
             # Render result
             for row_num, (row, spans) in enumerate(zip(row_chars, row_spans)):
-                is_underline_row = row_num == self._font._baseline + 1
+                is_underline_row = row_num == self._font.underline
+                underline_char = self._font.underline_char
                 for span in spans:
-                    style: Style = span.style
+                    style: Optional[Style] = span.style
                     fragment = row[span.start : span.end]
                     if style and style.underline is True:
                         if is_underline_row:
-                            fragment = "".join("▔" if f in " " else f for f in fragment)
+                            fragment = fragment.replace(" ", underline_char)
                         style += Style(underline=False)
                     yield (Segment(fragment, style=style))
                 yield Segment("\n")

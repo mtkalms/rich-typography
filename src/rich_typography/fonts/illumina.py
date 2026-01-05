@@ -39,7 +39,7 @@ LIGATURES = Glyphs(
     "           ",
 )
 
-ILLUMINA = Font("Illumina", UPPER | LOWER | DIGITS, LIGATURES)
+ILLUMINA = Font("Illumina", UPPER | LOWER | DIGITS, ligatures=LIGATURES)
 
 
 if __name__ == "__main__":  # pragma: no cover

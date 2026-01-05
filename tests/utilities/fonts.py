@@ -29,7 +29,7 @@ OVERLAP = Font(
         "· │",
         "   ",
     ),
-    Glyphs(
+    ligatures=Glyphs(
         ["re", "ra", "ri", "ro", "ru", "fi", "ff", "ft", "ffi"],
         "         .         ╭╮ ╭╭╮ ╭╷ ╭╭╮",
         "┌┬╮ ┌╮╮ ┌┐ ┌┬╮ ┌┐╷ ┼┐ ┼┼  ┼┼ ┼┼┐",

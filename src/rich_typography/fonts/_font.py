@@ -1,84 +1,139 @@
-from typing import Any, Dict, Iterable, List, Literal, Optional
+from typing import Any, Dict, Iterable, List, Optional
 
 from rich_typography.glyphs import Glyph, Glyphs
-
-Variant = Optional[Literal["underline"]]
 
 NON_OVERLAPPING = ' "'
 
 
 class Font:
+    """A font.
+
+    Args:
+        name (str): Name of the font.
+        glyphs (Dict[str, List[str]]): Glyphs for single chars.
+        ligatures (Glyphs, optional): Glyphs for ligatures. Defaults to None.
+        letter_spacing (int, optional): Spacing between glyphs in number of cells. Defaults to 0.
+        space_width (int, optional): Width of space glyph in number of cells. Defaults to 1.
+        baseline (int, optional): Line index of baseline. Defaults to second to last.
+        underline (int, optional): Line index of underline. Defaults to last.
+        underline_char (str, optional): Char used to draw underline. Defaults to '▔'.
+    """
+
     def __init__(
         self,
         name: str,
         glyphs: Dict[str, List[str]],
+        *,
         ligatures: Optional[Glyphs] = None,
         letter_spacing: int = 0,
         space_width: int = 1,
         baseline: Optional[int] = None,
+        underline: Optional[int] = None,
+        underline_char: Optional[str] = None,
     ):
         self._name = name
         self._line_height = len(list(glyphs.values())[0])
-        self.letter_spacing = letter_spacing
-        self._glyphs = glyphs | self.space(space_width, self._line_height)
+        self._glyphs = glyphs | Glyphs(" ", *self.space(space_width, self.line_height))
         self._ligatures = ligatures or {}
+        self._letter_spacing = letter_spacing
         self._space_width = space_width
-        self._baseline = baseline or self._line_height - 2
+        self._baseline_height = baseline or self.line_height - 2
+        self._underline_height = underline or self.baseline + 1
+        self._underline_char = underline_char or "▔"
+        self._placeholder = self.placeholder(self.line_height)
 
-    def space_width(self):
+    @property
+    def line_height(self) -> int:
+        """Number of lines per glyph."""
+        return self._line_height
+
+    @property
+    def letter_spacing(self) -> int:
+        """Spacing between glyphs in number of cell"""
+        return self._letter_spacing
+
+    @property
+    def space_width(self) -> int:
+        """Width of space glyph in number of cells."""
         return self._space_width
 
+    @property
+    def baseline(self) -> int:
+        """Line index of baseline."""
+        return self._baseline_height
+
+    @property
+    def underline(self) -> int:
+        """Line index of underline."""
+        return self._underline_height
+
+    @property
+    def underline_char(self) -> str:
+        """Char used to draw underline."""
+        return self._underline_char
+
+    @property
+    def ligatures(self) -> Iterable[str]:
+        """All available ligatures."""
+        return self._ligatures.keys()
+
     @classmethod
-    def space(cls, width: int, line_height: int) -> Glyphs:
-        return Glyphs(" ", *([" " * width] * line_height))
+    def space(cls, width: int, line_height: int) -> Glyph:
+        """Create space glyph.
+
+        Args:
+            width (int): Width in number of cells.
+            line_height (int): Height in number of lines.
+
+        Returns:
+            Glyph: Space glyph.
+        """
+        return [" " * width] * line_height
 
     @classmethod
     def placeholder(cls, line_height: int) -> Glyph:
+        """Create placeholder glyph.
+
+        Args:
+            line_height (int): Height in number of lines.
+
+        Returns:
+            Glyph: Placeholder glyph.
+        """
         return ["┌─┐"] + ["│ │"] * (line_height - 2) + ["└─┘"]
 
-    @classmethod
-    def underline(
-        cls,
-        glyph: Glyph,
-        baseline: int,
-        start: Optional[int] = None,
-        end: Optional[int] = None,
-    ):
-        line = glyph[baseline - 1]
-        start = start or 0
-        end = start or len(line)
-        _glyph = glyph[:]
-        _glyph[baseline - 1] = (
-            line[:start]
-            + "".join("▔" if g == " " else g for g in line[start:end])
-            + line[end:]
-        )
-        return _glyph
+    def underlined(self, fragment: Glyph, underline: Optional[int] = None) -> Glyph:
+        """Add underline to glyph or fragment.
 
-    def glyph(self, char: str, variant: Variant = None) -> Glyph:
-        glyph = self._glyphs.get(char, self.placeholder(self._line_height))
-        if variant == "underline":
-            glyph = self.underline(glyph, self._baseline)
+        Args:
+            fragment (Glyph): Glyph or fragment to underline.
+            underline (int, optional): Line index of underline. Defaults to underline of font.
+
+        Returns:
+            Glyph: Underlined glyph or fragment.
+        """
+        line = underline or self.underline
+        _fragment = fragment[:]
+        _fragment[line] = fragment[line].replace(" ", self.underline_char)
+        return _fragment
+
+    def get(self, char: str, *, underline: bool = False) -> Glyph:
+        """Get glyph for char or ligature.
+
+        Args:
+            char (str): Char or group of chars (ligature).
+            underline (bool, optional): Underline glyph. Defaults to False.
+
+        Returns:
+            Glyph: Glyph for char.
+        """
+        if len(char) == 1:
+            glyph = self._glyphs.get(char, self._placeholder)
+        else:
+            glyph = self._ligatures.get(char, self._placeholder)
+        if underline:
+            glyph = self.underlined(glyph)
         return glyph
-
-    def ligature(self, char: str, variant: Variant = None) -> Glyph:
-        glyph = self._ligatures.get(char, self.placeholder(self._line_height))
-        if variant == "underline":
-            glyph = self.underline(glyph, self._baseline)
-        return glyph
-
-    def get(self, char: str, variant: Variant = None) -> Glyph:
-        return (
-            self.glyph(char, variant)
-            if len(char) == 1
-            else self.ligature(char, variant)
-        )
-
-    def max_ligature_length(self) -> int:
-        return len(max(self._ligatures, key=len))
-
-    def ligatures(self) -> Iterable[str]:
-        return self._ligatures.keys()
 
     def __contains__(self, other: Any) -> bool:
         if isinstance(other, str):
@@ -95,4 +150,4 @@ class Font:
         )
 
     def __repr__(self):
-        return f"Font('{self._name}')"
+        return f"<Font: '{self._name}'>"
