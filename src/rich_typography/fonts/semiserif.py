@@ -82,3 +82,8 @@ if __name__ == "__main__":  # pragma: no cover
 
     console = Console()
     console.print(Typography("Semiserif", font=SEMISERIF))
+    console.print(str(UPPER))
+    console.print(str(LOWER))
+    console.print(str(DIGITS))
+    console.print(str(PUNCTUATION))
+    console.print(str(LIGATURES))
