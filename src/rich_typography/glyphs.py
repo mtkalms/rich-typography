@@ -1,22 +1,36 @@
 from itertools import zip_longest
-from typing import Dict, List, Union
+from typing import Dict, List, Optional, Union
 
 Glyph = List[str]
+"""A single glyph represented by lines of text."""
 
 
 class Glyphs(dict):
-    def __init__(self, chars: Union[List[str], str], *glyphs: str):
-        # Ignore leading/trailing line breaks
-        _glyphs = [g for g in glyphs if g]
-        self._line_height = len(_glyphs)
+    """A collection of glyphs mapped to the rendered char.
+
+    Args:
+        chars (Union[List[str], str]): List or string of chars in the same order as glyphs.
+        *glyphs (str): Lines of concatenated glyphs, delimited by full column of separator char.
+        separator (str): Separator char used to separate individual glyphs.
+
+    Raises:
+        ValueError: Glyph lines are of unequal length.
+        ValueError: Number of glyphs does not match number of chars.
+    """
+
+    def __init__(
+        self,
+        chars: Union[List[str], str],
+        *glyphs: str,
+        separator: Optional[str] = None,
+    ):
+        self._line_height = len(glyphs)
+        if not all(len(line) == len(glyphs[0]) for line in glyphs):
+            raise ValueError("Glyphs has lines of unqual length.")
         if len(chars) == 1:
-            super().__init__({chars[0]: _glyphs})
+            super().__init__({chars[0]: list(glyphs)})
         else:
-            super().__init__(self.get_char_map(_glyphs, chars))
-        # Preflight Checks
-        for char, glyph in self.items():
-            if not all(len(line) == len(glyph[0]) for line in glyph):
-                raise ValueError(f"Glyph {char} has lines of unqual length.")
+            super().__init__(self.get_char_map(chars, *glyphs, separator=separator))
 
     def __or__(self, other):
         if not isinstance(other, Glyphs):
@@ -33,14 +47,36 @@ class Glyphs(dict):
             result += "\n" + " ".join(line)
         return result
 
+    def __repr__(self) -> str:
+        return f"<Glyphs: {' '.join(self.keys())}>"
+
     @classmethod
     def get_char_map(
-        cls, lines: List[str], chars: Union[List[str], str]
+        cls,
+        chars: Union[List[str], str],
+        *glyphs: str,
+        separator: Optional[str] = None,
     ) -> Dict[str, Glyph]:
-        columns = zip(*lines)
-        breaks = [i for i, d in enumerate(columns) if all(c == " " for c in d)]
+        """Map chars to split glyphs. Glyphs are split at every full column of the separator char.
+
+        Args:
+            lines (List[str]): Lines of concatenated glyphs, delimited by full column of separator.
+            chars (Union[List[str], str]): String or List of chars.
+            separator (Optional[str], optional): _description_. Defaults to None.
+
+        Raises:
+            ValueError: Number of glyphs does not match number of chars.
+
+        Returns:
+            Dict[str, Glyph]: Char to glyph map.
+        """
+        _separator = separator or " "
+        columns = zip(*glyphs)
+        breaks = [i for i, d in enumerate(columns) if all(c == _separator for c in d)]
         result = {}
-        for idx, pos in enumerate(zip([-1] + breaks, breaks + [len(lines[0])])):
+        for idx, pos in enumerate(zip([-1] + breaks, breaks + [len(glyphs[0])])):
             start, end = pos
-            result[chars[idx]] = ["".join(line[(start + 1) : end]) for line in lines]
+            result[chars[idx]] = ["".join(line[(start + 1) : end]) for line in glyphs]
+        if len(result) != len(chars):
+            raise ValueError("Number of glyphs does not match number of chars.")
         return result
