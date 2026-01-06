@@ -9,6 +9,11 @@ theme:
   icon:
     repo: fontawesome/brands/github
   features:
+    - navigation.tabs
+    - navigation.indexes
+    - navigation.tabs.sticky
+    - navigation.footer
+    - navigation.path
     - search.suggest
     - search.highlight
   font:
@@ -37,6 +42,21 @@ plugins:
   - search
   - mkdocstrings:
       default_handler: python
+      handlers:
+        python:
+          options:
+            docstring_options:
+              ignore_init_summary: true
+            merge_init_into_class: true
+            modernize_annotations: false
+            parameter_headings: true
+            separate_signature: true
+            show_root_heading: false
+            show_signature_annotations: false
+            show_source: false
+            show_symbol_type_heading: true
+            show_symbol_type_toc: true
+            signature_crossrefs: true
 
 markdown_extensions:
   - attr_list
