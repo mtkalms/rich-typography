@@ -16,6 +16,7 @@ from rich.control import strip_control_codes
 from rich.segment import Segment
 from rich.style import Style
 from rich.text import Span, Text
+from rich.emoji import EmojiVariant
 
 from rich_typography.fonts import SEMISERIF, Font
 from rich_typography.fonts._font import NON_OVERLAPPING
@@ -62,6 +63,24 @@ class MutableSpan:
 
 
 class Typography:
+    """Large text with color and style.
+
+    Args:
+        text (str, optional): Default unstyled text. Defaults to "".
+        style (Union[str, Style], optional): Base style for text. Defaults to "".
+        justify (str, optional): Justify method: "left", "center", "full", "right". Defaults to None.
+        overflow (str, optional): Overflow method: "crop", "fold", "ellipsis". Defaults to None.
+        no_wrap (bool, optional): Disable text wrapping, or None for default. Defaults to None.
+        end (str, optional): Character to end text with. Defaults to "\\\\n".
+        tab_size (int): Number of spaces per tab, or ``None`` to use ``console.tab_size``. Defaults to None.
+        spans (List[Span], optional). A list of predefined style spans. Defaults to None.
+        font (Font, optional): Font used to render text. Defaults to SEMISERIF.
+        adjust_spacing (int, optional): Adjust letter spacing. Defaults to 0.
+        use_kerning (bool, optional): Enable automatic kerning. Defaults to True.
+        use_ligatures (bool, optional): Enable all ligatures the font provides. Defaults to True.
+        style_ligatures (str, optional): Ligature style method: "first", "last". Defaults to None.
+    """
+
     def __init__(
         self,
         text: str = "",
@@ -91,7 +110,7 @@ class Typography:
         self._font = font
         self._adjust_spacing = adjust_spacing
         self._use_kerning = use_kerning
-        self._use_ligartures = use_ligatures
+        self._use_ligatures = use_ligatures
         self._style_ligatures: Optional["LigatureStyleMethod"] = style_ligatures
 
     @classmethod
@@ -119,7 +138,7 @@ class Typography:
         return value
 
     def split_glyphs(self, text: str) -> Dict[int, str]:
-        if not self._use_ligartures:
+        if not self._use_ligatures:
             return dict(enumerate(text))
         glyphs: Dict[int, str] = {}
         last = 0
@@ -162,7 +181,7 @@ class Typography:
             font=self._font,
             adjust_spacing=self._adjust_spacing,
             use_kerning=self._use_kerning,
-            use_ligatures=self._use_ligartures,
+            use_ligatures=self._use_ligatures,
             style_ligatures=self._style_ligatures,
         )
 
@@ -170,12 +189,26 @@ class Typography:
     def from_text(
         cls,
         text: Text,
+        *,
         font: Font = SEMISERIF,
         adjust_spacing: int = 0,
         use_kerning: bool = True,
         use_ligatures: bool = True,
         style_ligatures: Optional[LigatureStyleMethod] = None,
     ) -> "Typography":
+        """Create Typography instance from Text.
+
+        Args:
+            text (Text): Text instance.
+            font (Font, optional): Font used to render text. Defaults to SEMISERIF.
+            adjust_spacing (int, optional): Adjust letter spacing. Defaults to 0.
+            use_kerning (bool, optional): Enable automatic kerning. Defaults to True.
+            use_ligatures (bool, optional): Enable all ligatures the font provides. Defaults to True.
+            style_ligatures (str, optional): Ligature style method: "first", "last". Defaults to None.
+
+        Returns:
+            Typography: A Typography instance based on Text.
+        """
         return Typography(
             text.plain,
             style=text.style,
@@ -192,7 +225,65 @@ class Typography:
             style_ligatures=style_ligatures,
         )
 
+    @classmethod
+    def from_markup(
+        cls,
+        text: str,
+        *,
+        style: Union[str, Style] = "",
+        emoji: bool = True,
+        emoji_variant: Optional[EmojiVariant] = None,
+        justify: Optional["JustifyMethod"] = None,
+        overflow: Optional["OverflowMethod"] = None,
+        end: str = "\n",
+        font: Font = SEMISERIF,
+        adjust_spacing: int = 0,
+        use_kerning: bool = True,
+        use_ligatures: bool = True,
+        style_ligatures: Optional[LigatureStyleMethod] = None,
+    ):
+        """Create Typography instance from markup.
+
+        Args:
+            text (str): A string containing console markup.
+            style (Union[str, Style], optional): Base style for text. Defaults to "".
+            emoji (bool, optional): Also render emoji code. Defaults to True.
+            emoji_variant (str, optional): Optional emoji variant, either "text" or "emoji". Defaults to None.
+            justify (str, optional): Justify method: "left", "center", "full", "right". Defaults to None.
+            overflow (str, optional): Overflow method: "crop", "fold", "ellipsis". Defaults to None.
+            end (str, optional): Character to end text with. Defaults to "\\\\n".
+            font (Font, optional): Font used to render text. Defaults to SEMISERIF.
+            adjust_spacing (int, optional): Adjust letter spacing. Defaults to 0.
+            use_kerning (bool, optional): Enable automatic kerning. Defaults to True.
+            use_ligatures (bool, optional): Enable all ligatures the font provides. Defaults to True.
+            style_ligatures (str, optional): Ligature style method: "first", "last". Defaults to None.
+
+        Returns:
+            Typography: A Typography instance with markup rendered.
+        """
+        return cls.from_text(
+            Text.from_markup(
+                text,
+                style=style,
+                emoji=emoji,
+                emoji_variant=emoji_variant,
+                justify=justify,
+                overflow=overflow,
+                end=end,
+            ),
+            font=font,
+            adjust_spacing=adjust_spacing,
+            use_kerning=use_kerning,
+            use_ligatures=use_ligatures,
+            style_ligatures=style_ligatures,
+        )
+
     def to_text(self) -> Text:
+        """Create Text instance from Typography.
+
+        Returns:
+            Text: A Text instance based on Typography.
+        """
         return Text(
             self._text,
             style=self.style,
@@ -247,11 +338,11 @@ class Typography:
         typography_lines = [
             Typography.from_text(
                 line,
-                self._font,
-                self._adjust_spacing,
-                self._use_kerning,
-                self._use_ligartures,
-                self._style_ligatures,
+                font=self._font,
+                adjust_spacing=self._adjust_spacing,
+                use_kerning=self._use_kerning,
+                use_ligatures=self._use_ligatures,
+                style_ligatures=self._style_ligatures,
             )
             for line in lines
         ]
@@ -320,7 +411,7 @@ class Typography:
 
     def glyph_borders(self, text: str) -> List[int]:
         result = list(range(len(text)))
-        if not (self._use_ligartures and self._font.ligatures):
+        if not (self._use_ligatures and self._font.ligatures):
             return result
         ligatures = reversed(sorted(self._font.ligatures, key=len))
         for ligature in re.finditer("|".join(ligatures), text):
@@ -367,7 +458,7 @@ class Typography:
     ) -> List[Tuple[str, Optional[Style]]]:
         glyphs = self.glyph_borders(text)
         styles = self.style_borders(console, len(text))
-        if self._use_ligartures:
+        if self._use_ligatures:
             corrected = {}
             for pos, style in styles:
                 if pos in glyphs:
@@ -510,7 +601,7 @@ class Typography:
             for fragment_text, fragment_style in fragments:
                 if not fragment_text:
                     continue
-                if self._use_ligartures:
+                if self._use_ligatures:
                     segment_chars = list(self.split_glyphs(fragment_text).values())
                 else:
                     segment_chars = list(fragment_text)
