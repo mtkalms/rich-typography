@@ -7,6 +7,7 @@ Glyph = List[str]
 
 class Glyphs(dict):
     """A glyph dictionary mapping single chars or groups of chars (ligatures) to glyphs.
+
     Args:
         chars (Union[List[str], str]): String of chars or list of char groups in the same order as glyphs.
         *glyphs (str): Lines of concatenated glyphs, delimited by full column of separator char.
