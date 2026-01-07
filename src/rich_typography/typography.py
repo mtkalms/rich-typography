@@ -73,7 +73,7 @@ class Typography:
         no_wrap (bool, optional): Disable text wrapping, or None for default. Defaults to None.
         end (str, optional): Character to end text with. Defaults to "\\\\n".
         tab_size (int): Number of spaces per tab, or ``None`` to use ``console.tab_size``. Defaults to None.
-        spans (List[Span], optional). A list of predefined style spans. Defaults to None.
+        spans (List[Span], optional): A list of predefined style spans. Defaults to None.
         font (Font, optional): Font used to render text. Defaults to SEMISERIF.
         adjust_spacing (int, optional): Adjust letter spacing. Defaults to 0.
         use_kerning (bool, optional): Enable automatic kerning. Defaults to True.
@@ -241,7 +241,7 @@ class Typography:
         use_kerning: bool = True,
         use_ligatures: bool = True,
         style_ligatures: Optional[LigatureStyleMethod] = None,
-    ):
+    ) -> "Typography":
         """Create Typography instance from markup.
 
         Args:

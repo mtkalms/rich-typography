@@ -60,8 +60,8 @@ class Glyphs(dict):
         """Map chars to split glyphs. Glyphs are split at every full column of the separator char.
 
         Args:
-            lines (List[str]): Lines of concatenated glyphs, delimited by full column of separator.
             chars (Union[List[str], str]): String or List of chars.
+            glyphs (List[str]): Lines of concatenated glyphs, delimited by full column of separator.
             separator (Optional[str], optional): _description_. Defaults to None.
 
         Raises:
