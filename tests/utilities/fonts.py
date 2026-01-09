@@ -1,6 +1,7 @@
 from string import ascii_lowercase, ascii_uppercase
 
 from rich_typography.fonts import Font
+from rich_typography.fonts._font import LineStyle
 from rich_typography.glyphs import Glyphs
 
 OVERLAP = Font(
@@ -37,4 +38,6 @@ OVERLAP = Font(
         "╵╰╴ ╵╰┘ ╵╵ ╵╰╯ ╵╰╯ ╵╵ ╵╵  ╵╰ ╵╵╵",
         "                                ",
     ),
+    baseline=3,
+    underline=LineStyle(4, "custom", "▔"),
 )

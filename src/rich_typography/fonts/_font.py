@@ -1,8 +1,45 @@
-from typing import Any, Dict, Iterable, List, Optional
+from typing import Any, Dict, Iterable, List, Literal, Optional, Union
 
 from rich_typography.glyphs import Glyph, Glyphs
 
 NON_OVERLAPPING = ' "'
+
+LineType = Literal["underline", "underline2", "strike", "overline", "custom"]
+
+
+class LineStyle:
+    def __init__(self, index: int, line: LineType, char: Optional[str] = None) -> None:
+        self._index = index
+        self._line: LineType = line
+        self._char = char
+
+    @property
+    def index(self) -> int:
+        return self._index
+
+    @property
+    def line(self) -> LineType:
+        return self._line
+
+    @property
+    def char(self) -> Optional[str]:
+        return self._char
+
+    def __or__(self, other):
+        if isinstance(other, int):
+            return LineStyle(
+                other,
+                self.line,
+                self.char,
+            )
+        elif isinstance(other, LineStyle):
+            return LineStyle(
+                other.index or self.index,
+                other.line or self.line,
+                other.char or self.char,
+            )
+        else:
+            return self
 
 
 class Font:
@@ -14,9 +51,11 @@ class Font:
         ligatures (Glyphs, optional): Glyphs for ligatures. Defaults to None.
         letter_spacing (int, optional): Spacing between glyphs in number of cells. Defaults to 0.
         space_width (int, optional): Width of space glyph in number of cells. Defaults to 1.
-        baseline (int, optional): Line index of baseline. Defaults to second to last.
-        underline (int, optional): Line index of underline. Defaults to last.
-        underline_char (str, optional): Char used to draw underline. Defaults to '▔'.
+        baseline (Union[int, LineStyle], optional): Line index of baseline. Defaults to second to last line.
+        underline (Union[int, LineStyle], optional): Line index or more complex style of underline. Defaults to line below baseline.
+        underline2 (Union[int, LineStyle], optional): Line index or more complex style of underline2. Defaults to baseline.
+        overline (Union[int, LineStyle], optional): Line index or more complex style of overline. Defaults to first line.
+        strike (Union[int, LineStyle], optional): Line index or more complex style of strike. Defaults to middle line.
     """
 
     def __init__(
@@ -28,8 +67,10 @@ class Font:
         letter_spacing: int = 0,
         space_width: int = 1,
         baseline: Optional[int] = None,
-        underline: Optional[int] = None,
-        underline_char: Optional[str] = None,
+        underline: Optional[Union[int, LineStyle]] = None,
+        underline2: Optional[Union[int, LineStyle]] = None,
+        overline: Optional[Union[int, LineStyle]] = None,
+        strike: Optional[Union[int, LineStyle]] = None,
     ):
         self._name = name
         self._line_height = len(list(glyphs.values())[0])
@@ -37,9 +78,11 @@ class Font:
         self._ligatures = ligatures or {}
         self._letter_spacing = letter_spacing
         self._space_width = space_width
-        self._baseline_height = baseline or self.line_height - 2
-        self._underline_height = underline or self.baseline + 1
-        self._underline_char = underline_char or "▔"
+        self._baseline = baseline or self.line_height - 2
+        self._underline = LineStyle(self._baseline, "underline") | underline
+        self._underline2 = LineStyle(self._baseline + 1, "underline2") | underline2
+        self._overline = LineStyle(0, "overline") | overline
+        self._strike = LineStyle(self.line_height // 2, "strike") | strike
         self._placeholder = self.placeholder(self.line_height)
 
     @property
@@ -60,17 +103,27 @@ class Font:
     @property
     def baseline(self) -> int:
         """Line index of baseline."""
-        return self._baseline_height
+        return self._baseline
 
     @property
-    def underline(self) -> int:
-        """Line index of underline."""
-        return self._underline_height
+    def underline(self) -> LineStyle:
+        """Style of underline."""
+        return self._underline
 
     @property
-    def underline_char(self) -> str:
-        """Char used to draw underline."""
-        return self._underline_char
+    def underline2(self) -> LineStyle:
+        """Style of underline2."""
+        return self._underline2
+
+    @property
+    def overline(self) -> LineStyle:
+        """Style of overline."""
+        return self._overline
+
+    @property
+    def strike(self) -> LineStyle:
+        """Style of strike."""
+        return self._strike
 
     @property
     def ligatures(self) -> Iterable[str]:
@@ -102,27 +155,11 @@ class Font:
         """
         return ["┌─┐"] + ["│ │"] * (line_height - 2) + ["└─┘"]
 
-    def underlined(self, fragment: Glyph, underline: Optional[int] = None) -> Glyph:
-        """Add underline to glyph or fragment.
-
-        Args:
-            fragment (Glyph): Glyph or fragment to underline.
-            underline (int, optional): Line index of underline. Defaults to underline of font.
-
-        Returns:
-            Glyph: Underlined glyph or fragment.
-        """
-        line = underline or self.underline
-        _fragment = fragment[:]
-        _fragment[line] = fragment[line].replace(" ", self.underline_char)
-        return _fragment
-
     def get(self, char: str, *, underline: bool = False) -> Glyph:
         """Get glyph for char or ligature.
 
         Args:
             char (str): Char or group of chars (ligature).
-            underline (bool, optional): Underline glyph. Defaults to False.
 
         Returns:
             Glyph: Glyph for char.
@@ -131,8 +168,6 @@ class Font:
             glyph = self._glyphs.get(char, self._placeholder)
         else:
             glyph = self._ligatures.get(char, self._placeholder)
-        if underline:
-            glyph = self.underlined(glyph)
         return glyph
 
     def __contains__(self, other: Any) -> bool:

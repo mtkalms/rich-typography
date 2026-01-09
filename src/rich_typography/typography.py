@@ -19,7 +19,7 @@ from rich.text import Span, Text
 from rich.emoji import EmojiVariant
 
 from rich_typography.fonts import SEMISERIF, Font
-from rich_typography.fonts._font import NON_OVERLAPPING
+from rich_typography.fonts._font import NON_OVERLAPPING, LineStyle
 from rich_typography.glyphs import Glyph
 import bisect
 
@@ -27,6 +27,12 @@ LigatureStyleMethod = Literal["first", "last"]
 
 DEFAULT_JUSTIFY: "JustifyMethod" = "default"
 DEFAULT_OVERFLOW: "OverflowMethod" = "fold"
+LINE_STYLE_RESET = Style(
+    underline=False,
+    underline2=False,
+    overline=False,
+    strike=False,
+)
 
 
 def _trailing(line: str):
@@ -686,15 +692,26 @@ class Typography:
             row_spans = [self.resolve_spans(spans) for spans in row_spans]
             # Render result
             for row_num, (row, spans) in enumerate(zip(row_chars, row_spans)):
-                is_underline_row = row_num == self._font.underline
-                underline_char = self._font.underline_char
                 for span in spans:
                     style: Optional[Style] = span.style
                     fragment = row[span.start : span.end]
-                    if style and style.underline is True:
-                        if is_underline_row:
-                            fragment = fragment.replace(" ", underline_char)
-                        style += Style(underline=False)
+                    if style:
+                        style_override = LINE_STYLE_RESET
+                        for line in ["underline", "underline2", "overline", "strike"]:
+                            line_style: LineStyle = getattr(self._font, line)
+                            if not getattr(style, line) or line_style.index != row_num:
+                                continue
+                            if line_style.line == "custom" and line_style.char:
+                                fragment = fragment.replace(" ", line_style.char)
+                            else:
+                                _line = (
+                                    line
+                                    if line_style.line == "custom"
+                                    else line_style.line
+                                )
+                                override = {_line: True}
+                                style_override += Style(*{}, **override)
+                        style += style_override
                     yield (Segment(fragment, style=style))
                 yield Segment("\n")
 
