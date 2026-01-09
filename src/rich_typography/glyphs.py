@@ -80,3 +80,80 @@ class Glyphs(dict):
         if len(result) != len(chars):
             raise ValueError("Number of glyphs does not match number of chars.")
         return result
+
+    @classmethod
+    def line_trail(cls, line: str):
+        """Get number of trailing whitespace.
+
+        Args:
+            line (str): Line of text.
+
+        Returns:
+            _type_: Trailing whitespace count.
+        """
+        return len(line) - len(line.rstrip())
+
+    @classmethod
+    def line_lead(cls, line: str):
+        """Get number of leading whitespace.
+
+        Args:
+            line (str): Line of text.
+
+        Returns:
+            _type_: Leading whitespace count.
+        """
+        return len(line) - len(line.lstrip())
+
+    @classmethod
+    def max_overlap(cls, left: Glyph, right: Glyph) -> int:
+        """Calculates the maximum number of cells two glyphs can overlap without occluding each other.
+
+        Args:
+            left (Glyph): Left glyph.
+            right (Glyph): Right glyph.
+
+        Returns:
+            int: Max overlap in number of cells.
+        """
+        return min(
+            cls.line_trail(ll) + cls.line_lead(lr) for ll, lr in zip(left, right)
+        )
+
+    @classmethod
+    def merge_line(cls, left: str, right: str, offset: int = 0) -> str:
+        """Merge two lines. In case of overlapping non-space characters, the right line will occlude the left line.
+
+        Args:
+            left (str): Left line.
+            right (str): Right line.
+            offset (int): Offset between left and right in number of cells. Defaults to 0.
+
+        Returns:
+            str: Merged line.
+        """
+        if offset >= 0:
+            return left + (" " * offset) + right
+        else:
+            return (
+                left[:offset]
+                + "".join(
+                    ll if lr.isspace() else lr
+                    for ll, lr in zip(left[offset:], right[:-offset])
+                )
+                + right[-offset:]
+            )
+
+    @classmethod
+    def merge(cls, left: Glyph, right: Glyph, offset: int) -> Glyph:
+        """Merges two glyphs. In case of overlapping non-space characters, the right glyph will occlude the left glyph.
+
+        Args:
+            left (Glyph): Left glyph.
+            right (Glyph): Right glyph.
+            offset (int): Offset between left and right in number of cells. Defaults to 0.
+
+        Returns:
+            Glyph: Merged glyph.
+        """
+        return [cls.merge_line(ll, lr, offset) for ll, lr in zip(left, right)]

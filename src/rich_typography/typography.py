@@ -20,7 +20,7 @@ from rich.emoji import EmojiVariant
 from rich.measure import Measurement
 
 from rich_typography.fonts import SEMISERIF, Font, NON_OVERLAPPING, LineStyle
-from rich_typography.glyphs import Glyph
+from rich_typography.glyphs import Glyph, Glyphs
 import bisect
 
 LigatureStyleMethod = Literal["first", "last"]
@@ -33,14 +33,6 @@ LINE_STYLE_RESET = Style(
     overline=False,
     strike=False,
 )
-
-
-def _trailing(line: str):
-    return len(line) - len(line.rstrip())
-
-
-def _leading(line: str):
-    return len(line) - len(line.lstrip())
 
 
 def neighbours(numbers: List[int], target: int) -> Tuple[Optional[int], Optional[int]]:
@@ -87,6 +79,23 @@ class Typography:
         style_ligatures (str, optional): Ligature style method: "first", "last". Defaults to None.
     """
 
+    __slots__ = [
+        "_text",
+        "style",
+        "justify",
+        "overflow",
+        "no_wrap",
+        "end",
+        "tab_size",
+        "_spans",
+        "_length",
+        "_font",
+        "_adjust_spacing",
+        "_use_kerning",
+        "_use_ligatures",
+        "_style_ligatures",
+    ]
+
     def __init__(
         self,
         text: str = "",
@@ -105,7 +114,8 @@ class Typography:
         style_ligatures: Optional["LigatureStyleMethod"] = None,
     ):
         sanitized_text = strip_control_codes(text)
-        self._text = sanitized_text
+        self._text = [sanitized_text]
+        self._length = len(sanitized_text)
         self.style = style
         self.justify: Optional["JustifyMethod"] = justify
         self.overflow: Optional["OverflowMethod"] = overflow
@@ -119,28 +129,48 @@ class Typography:
         self._use_ligatures = use_ligatures
         self._style_ligatures: Optional["LigatureStyleMethod"] = style_ligatures
 
-    @classmethod
-    def max_overlap(cls, a: Glyph, b: Glyph) -> int:
-        return min(_trailing(la) + _leading(lb) for la, lb in zip(a, b))
+    # PROPERTIES
 
-    @classmethod
-    def merge_lines(cls, a: str, b: str) -> str:
-        return "".join(rlb if rlb != " " else rla for rla, rlb in zip(a, b))
+    @property
+    def plain(self) -> str:
+        """Get the text as a single string."""
+        if len(self._text) != 1:
+            self._text[:] = ["".join(self._text)]
+        return self._text[0]
 
-    @classmethod
-    def merge_glyphs(cls, a: Glyph, b: Glyph, offset: int) -> Glyph:
-        if offset >= 0:
-            return [la + (" " * offset) + lb for la, lb in zip(a, b)]
-        else:
-            return [
-                la[:offset] + cls.merge_lines(la[offset:], lb[:-offset]) + lb[-offset:]
-                for la, lb in zip(a, b)
-            ]
+    @plain.setter
+    def plain(self, new_text: str) -> None:
+        """Set the text to a new value."""
+        if new_text != self.plain:
+            sanitized_text = strip_control_codes(new_text)
+            self._text[:] = [sanitized_text]
+            old_length = self._length
+            self._length = len(sanitized_text)
+            if old_length > self._length:
+                self._spans[:] = [
+                    (
+                        span
+                        if span.end < self._length
+                        else Span(span.start, min(self._length, span.end), span.style)
+                    )
+                    for span in self._spans
+                    if span.start < self._length
+                ]
+
+    @property
+    def spans(self) -> List[Span]:
+        """Get a reference to the internal list of spans."""
+        return self._spans
+
+    @spans.setter
+    def spans(self, spans: List[Span]) -> None:
+        """Set spans."""
+        self._spans = spans[:]
 
     def letter_adjust(self, a: str, b: str) -> int:
         value = self._font.letter_spacing + self._adjust_spacing
         if self._use_kerning and a != " " and b != " ":
-            value -= self.max_overlap(*map(self._font.get, [a, b]))
+            value -= Glyphs.max_overlap(*map(self._font.get, [a, b]))
         return value
 
     def split_glyphs(self, text: str) -> Dict[int, str]:
@@ -159,8 +189,29 @@ class Typography:
         glyphs |= dict(enumerate(text[last:], last))
         return glyphs
 
+    def __len__(self) -> int:
+        return self._length
+
+    def __bool__(self) -> bool:
+        return bool(self._length)
+
+    def __repr__(self) -> str:
+        return f"<typography {self.plain!r} {self._spans!r} {self.style!r}>"
+
     def __str__(self) -> str:
-        return self._text
+        return self.plain
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Text):
+            return NotImplemented
+        return self.plain == other.plain and self._spans == other._spans
+
+    def __contains__(self, other: object) -> bool:
+        if isinstance(other, str):
+            return other in self.plain
+        elif isinstance(other, Text):
+            return other.plain in self.plain
+        return False
 
     def glyph_width(self, a: str):
         return len(self._font.get(a)[0])
@@ -176,7 +227,7 @@ class Typography:
 
     def copy(self) -> "Typography":
         return Typography(
-            self._text,
+            self.plain,
             style=self.style,
             justify=self.justify,
             overflow=self.overflow,
@@ -291,7 +342,7 @@ class Typography:
             Text: A Text instance based on Typography.
         """
         return Text(
-            self._text,
+            self.plain,
             style=self.style,
             justify=self.justify,
             overflow=self.overflow,
@@ -309,14 +360,14 @@ class Typography:
     def truncate(self, max_width: int, *, overflow: Optional[OverflowMethod]) -> None:
         _overflow = overflow or self.overflow or DEFAULT_OVERFLOW
         if _overflow != "ignore":
-            length = self.rendered_width(self._text)
+            length = self.rendered_width(self.plain)
             if length > max_width:
                 if _overflow == "ellipsis":
                     ellipsis = "…" if "…" in self._font else "..."
                     max_width -= self.rendered_width(ellipsis)
-                    self._text = self.set_cell_size(self._text, max_width) + ellipsis
+                    self.plain = self.set_cell_size(self.plain, max_width) + ellipsis
                 else:
-                    self._text = self.set_cell_size(self._text, max_width)
+                    self.plain = self.set_cell_size(self.plain, max_width)
 
     def wrap(
         self,
@@ -439,7 +490,7 @@ class Typography:
         styles: List[Union[Style, str]] = [console.get_style(self.style)]
         borders: Dict[int, List[Tuple[int, int]]] = {
             0: [(1, 0)],
-            len(self._text): [(-1, 0)],
+            len(self.plain): [(-1, 0)],
         }
         for idx, span in enumerate(self._spans, 1):
             borders[span.start] = borders.get(span.start, []) + [(1, idx)]
@@ -504,8 +555,8 @@ class Typography:
     def _fg_offsets(self, spacing: int, fragment: Glyph, addition: Glyph) -> List[int]:
         return [
             min(
-                min(0, spacing + _leading(addition[row])),
-                max(spacing, -_trailing(fragment[row])),
+                min(0, spacing + Glyphs.line_lead(addition[row])),
+                max(spacing, -Glyphs.line_trail(fragment[row])),
             )
             for row in range(len(fragment))
         ]
@@ -584,7 +635,7 @@ class Typography:
         # wrap_overflow = overflow or self.overflow or DEFAULT_OVERFLOW
         line_height = self._font.line_height
         letter_spacing = self._font.letter_spacing
-        for line in self._text.splitlines():
+        for line in self.plain.splitlines():
             # Align style borders to glyphs
             fragments = self.style_fragments(line, console)
             # Right-strip if appropriate for justify method
@@ -625,12 +676,12 @@ class Typography:
                     else:
                         spacing = letter_spacing + self._adjust_spacing
                         if self.should_overlap(fragment_char, char):
-                            spacing -= self.max_overlap(fragment, letter)
-                        fragment = self.merge_glyphs(fragment, letter, spacing)
+                            spacing -= Glyphs.max_overlap(fragment, letter)
+                        fragment = Glyphs.merge(fragment, letter, spacing)
                     fragment_char = char
                 fragment_spacing = letter_spacing + self._adjust_spacing
                 if self.should_overlap(last_char, fragment_text[0]):
-                    fragment_spacing -= self.max_overlap(row_chars, fragment)
+                    fragment_spacing -= Glyphs.max_overlap(row_chars, fragment)
                 last_char = fragment_char
                 # Determine if styles overlap
                 split_styles = (
@@ -680,7 +731,7 @@ class Typography:
                         )
                     )
                 # Add current letter/ligature to result
-                row_chars = self.merge_glyphs(row_chars, fragment, fragment_spacing)
+                row_chars = Glyphs.merge(row_chars, fragment, fragment_spacing)
                 last_style = fragment_style
             # Truncate
             row_chars = [row[:width] for row in row_chars]
@@ -690,7 +741,7 @@ class Typography:
             # Adjust last style spans
             for row in row_spans:
                 row[-1].end = len(row_chars[0])
-            # Resolve span overlay
+            # Resolve span overlap
             row_spans = [self.resolve_spans(spans) for spans in row_spans]
             # Render result
             for row_num, (row, spans) in enumerate(zip(row_chars, row_spans)):
@@ -742,7 +793,7 @@ class Typography:
         self, console: "Console", options: "ConsoleOptions"
     ) -> Measurement:
         glyphs = set(
-            re.findall("|".join(self._font.ligatures), self._text) + list(self._text)
+            re.findall("|".join(self._font.ligatures), self.plain) + list(self.plain)
         )
         minimum = max(self.rendered_width(g) for g in glyphs)
-        return Measurement(minimum, self.rendered_width(self._text))
+        return Measurement(minimum, self.rendered_width(self.plain))

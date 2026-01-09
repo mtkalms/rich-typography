@@ -2,6 +2,7 @@ from typing import Literal, Optional
 
 
 LineType = Literal["underline", "underline2", "strike", "overline", "custom"]
+"""Type of line. Either ansi styles "underline", "underline2", "overline", "strike", or "custom"."""
 
 
 class LineStyle:
