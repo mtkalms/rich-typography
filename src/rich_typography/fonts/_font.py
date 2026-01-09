@@ -1,45 +1,9 @@
-from typing import Any, Dict, Iterable, List, Literal, Optional, Union
+from typing import Any, Dict, Iterable, List, Optional, Union
 
+from rich_typography.fonts._line import LineStyle
 from rich_typography.glyphs import Glyph, Glyphs
 
 NON_OVERLAPPING = ' "'
-
-LineType = Literal["underline", "underline2", "strike", "overline", "custom"]
-
-
-class LineStyle:
-    def __init__(self, index: int, line: LineType, char: Optional[str] = None) -> None:
-        self._index = index
-        self._line: LineType = line
-        self._char = char
-
-    @property
-    def index(self) -> int:
-        return self._index
-
-    @property
-    def line(self) -> LineType:
-        return self._line
-
-    @property
-    def char(self) -> Optional[str]:
-        return self._char
-
-    def __or__(self, other):
-        if isinstance(other, int):
-            return LineStyle(
-                other,
-                self.line,
-                self.char,
-            )
-        elif isinstance(other, LineStyle):
-            return LineStyle(
-                other.index or self.index,
-                other.line or self.line,
-                other.char or self.char,
-            )
-        else:
-            return self
 
 
 class Font:

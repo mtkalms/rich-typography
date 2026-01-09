@@ -19,8 +19,7 @@ from rich.text import Span, Text
 from rich.emoji import EmojiVariant
 from rich.measure import Measurement
 
-from rich_typography.fonts import SEMISERIF, Font
-from rich_typography.fonts._font import NON_OVERLAPPING, LineStyle
+from rich_typography.fonts import SEMISERIF, Font, NON_OVERLAPPING, LineStyle
 from rich_typography.glyphs import Glyph
 import bisect
 
