@@ -17,6 +17,7 @@ from rich.segment import Segment
 from rich.style import Style
 from rich.text import Span, Text
 from rich.emoji import EmojiVariant
+from rich.measure import Measurement
 
 from rich_typography.fonts import SEMISERIF, Font
 from rich_typography.fonts._font import NON_OVERLAPPING, LineStyle
@@ -572,6 +573,7 @@ class Typography:
     def render(
         self,
         console: "Console",
+        width: int,
         *,
         justify: Optional["JustifyMethod"] = None,
         overflow: Optional["OverflowMethod"] = None,
@@ -591,14 +593,14 @@ class Typography:
             # be other than 1, and indents cannot be expressed in text spaces.
             line_width = self.rendered_width(line)
             if wrap_justify == "right":
-                indent = int(console.width - line_width)
+                indent = int(width - line_width)
             elif wrap_justify == "center":
-                indent = int((console.width - line_width) // 2)
+                indent = int((width - line_width) // 2)
             else:
                 indent = 0
             # Adjust style borders
             if wrap_justify == "full":
-                fragments = self._justify_full(console.width, line, fragments)
+                fragments = self._justify_full(width, line, fragments)
             # Prepapre accumulators and apply indents
             row_spans = [[MutableSpan(0, 0, None)] for _ in range(line_height)]
             row_chars = ["" + " " * indent] * line_height
@@ -679,12 +681,10 @@ class Typography:
                 row_chars = self.merge_glyphs(row_chars, fragment, fragment_spacing)
                 last_style = fragment_style
             # Truncate
-            row_chars = [row[: console.width] for row in row_chars]
+            row_chars = [row[:width] for row in row_chars]
             # Right-pad if appropriate for justify method
             if wrap_justify and wrap_justify != "default":
-                row_chars = [
-                    row + " " * (console.width - len(row)) for row in row_chars
-                ]
+                row_chars = [row + " " * (width - len(row)) for row in row_chars]
             # Adjust last style spans
             for row in row_spans:
                 row[-1].end = len(row_chars[0])
@@ -723,10 +723,24 @@ class Typography:
         justify = self.justify or options.justify or DEFAULT_JUSTIFY
         overflow = self.overflow or options.overflow or DEFAULT_OVERFLOW
         lines: Iterable["Typography"] = self.wrap(
-            width=console.width,
+            width=options.max_width,
             tab_size=tab_size or 8,
             no_wrap=no_wrap,
             overflow=overflow,
         )
         for line in lines:
-            yield from line.render(console=console, justify=justify, overflow=overflow)
+            yield from line.render(
+                console=console,
+                width=options.max_width,
+                justify=justify,
+                overflow=overflow,
+            )
+
+    def __rich_measure__(
+        self, console: "Console", options: "ConsoleOptions"
+    ) -> Measurement:
+        glyphs = set(
+            re.findall("|".join(self._font.ligatures), self._text) + list(self._text)
+        )
+        minimum = max(self.rendered_width(g) for g in glyphs)
+        return Measurement(minimum, self.rendered_width(self._text))
