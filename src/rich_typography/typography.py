@@ -437,9 +437,12 @@ class Typography:
                 return None
             return Style.combine(get_style(d) for d in style_list)
 
-        styles: List[Union[Style, str]] = []
-        borders: Dict[int, List[Tuple[int, int]]] = {}
-        for idx, span in enumerate(self._spans):
+        styles: List[Union[Style, str]] = [console.get_style(self.style)]
+        borders: Dict[int, List[Tuple[int, int]]] = {
+            0: [(1, 0)],
+            len(self._text): [(-1, 0)],
+        }
+        for idx, span in enumerate(self._spans, 1):
             borders[span.start] = borders.get(span.start, []) + [(1, idx)]
             borders[span.end] = borders.get(span.end, []) + [(-1, idx)]
             styles.append(span.style)
