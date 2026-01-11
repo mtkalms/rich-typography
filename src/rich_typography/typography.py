@@ -20,7 +20,7 @@ from rich.emoji import EmojiVariant
 from rich.measure import Measurement
 
 from rich_typography.fonts import SEMISERIF, Font, NON_OVERLAPPING, LineStyle
-from rich_typography.glyphs import Glyph, Glyphs
+from rich_typography.glyphs import Glyphs
 import bisect
 
 LigatureStyleMethod = Literal["first", "last"]

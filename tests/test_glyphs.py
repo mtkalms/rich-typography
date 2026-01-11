@@ -118,7 +118,7 @@ def test_glyph_union_height_missmatch() -> None:
         "  ",
     )
     with pytest.raises(ValueError):
-        glyph_ab | glyph_c
+        _ = glyph_ab | glyph_c
 
 
 def test_glyph_union_unsupported_type() -> None:
@@ -138,7 +138,7 @@ def test_glyph_union_unsupported_type() -> None:
         "  ",
     ]
     with pytest.raises(TypeError):
-        glyph_ab | glyph_c
+        _ = glyph_ab | glyph_c
 
 
 def test_str() -> None:
