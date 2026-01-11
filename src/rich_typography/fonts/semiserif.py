@@ -3,16 +3,8 @@ import string
 from rich_typography.fonts import Font
 from rich_typography.glyphs import Glyphs
 
-LOWER = Glyphs(
-    string.ascii_lowercase,
-    "   ┐      ┐    ╭╮    ┐  .  . ┐  ┐                       ╷                   ",
-    "┌╮ ├╮ ╭┐ ╭┤ ╭╮ ┼  ╭┬ ├╮ ┐  ┐ │╷ │ ┬┬╮ ┬╮ ╭╮ ┬╮ ┬╮ ┬╮ ╭┐ ┼ ┐╷ ┐╷ ┐╷╷ ┐╷ ┐╷ ┌╮",
-    "╭┤ ││ │  ││ ├┘ │  ││ ││ │  │ ├╮ │ │││ ││ ││ ││ ││ │  ╰╮ │ ││ ││ │││ ╭╯ ││ ╭╯",
-    "╰┘ └╯ ╰╴ ╰┘ ╰╴ ╵  ╰┤ ╵╵ ╵  │ ╵╵ ╰ ╵╵╵ ╵╵ ╰╯ ├╯ ╰┤ ╵  └╯ ╰ ╰╯ ╰┘ ╰┴╯ ╵╵ ╰┤ ╰┘",
-    "                  └╯      └╯                ╵   ╵                      └╯   ",
-)
 
-UPPER = Glyphs(
+_upper = Glyphs(
     string.ascii_uppercase,
     "┬╮ ┬╮ ╭╮ ┬╮ ┬╴ ┬╴ ╭╮ ┐╷ ┐  ┐ ┐╷ ┐  ┬┬╮ ┬╮ ╭╮ ┬╮ ╭╮  ┬╮ ╭┐ ┌┬┐ ┐╷ ┐╷ ┐╷╷ ┐╷ ┐╷ ┌╮",
     "├┤ ├┤ │╵ ││ ├  ├  │╵ ├┤ │  │ ├╯ │  │││ ││ ││ ││ ││  ├╯ ╰╮  │  ││ ││ │││ ╭╯ ││ ╭╯",
@@ -21,7 +13,16 @@ UPPER = Glyphs(
     "                                                 ╰╯                        └╯   ",
 )
 
-DIGITS = Glyphs(
+_lower = Glyphs(
+    string.ascii_lowercase,
+    "   ┐      ┐    ╭╮    ┐  .  . ┐  ┐                       ╷                   ",
+    "┌╮ ├╮ ╭┐ ╭┤ ╭╮ ┼  ╭┬ ├╮ ┐  ┐ │╷ │ ┬┬╮ ┬╮ ╭╮ ┬╮ ┬╮ ┬╮ ╭┐ ┼ ┐╷ ┐╷ ┐╷╷ ┐╷ ┐╷ ┌╮",
+    "╭┤ ││ │  ││ ├┘ │  ││ ││ │  │ ├╮ │ │││ ││ ││ ││ ││ │  ╰╮ │ ││ ││ │││ ╭╯ ││ ╭╯",
+    "╰┘ └╯ ╰╴ ╰┘ ╰╴ ╵  ╰┤ ╵╵ ╵  │ ╵╵ ╰ ╵╵╵ ╵╵ ╰╯ ├╯ ╰┤ ╵  └╯ ╰ ╰╯ ╰┘ ╰┴╯ ╵╵ ╰┤ ╰┘",
+    "                  └╯      └╯                ╵   ╵                      └╯   ",
+)
+
+_digits = Glyphs(
     string.digits,
     "╭╮ ┐ ╭╮ ╭╮ ╷╷ ┌╴ ╭╴ ┌┐ ╭╮ ╭╮",
     "││ │ ╭╯  ┤ ╰┼ └╮ ├╮ ╭╯ ╭╯ ╰┤",
@@ -30,39 +31,19 @@ DIGITS = Glyphs(
     "                            ",
 )
 
-PUNCTUATION = Glyphs(
+_punctuation = Glyphs(
     string.punctuation,
-    "╷ ╷╷    ╭┼╮ ◯  ╱ ╭╮╷ ╷ ╭ ╮                   ╱      ╱    ╲  ╭╮     ┌╴ ╲    ╶┐ ╱╲    ╲ ╭╴ ╷ ╶╮    ",
-    "│    ┼┼ ╰┼╮   ╱  ├─┼   │ │                  ╱  ·   ╱  ╶╴  ╲ ╭╯ ╭─╮ │   ╲    │         ┼  │  ┼ ╭╮ ",
-    "│    ┼┼   │  ╱   │ │   │ │ ╶╳╴ ╶┼╴   ╶╴    ╱   · · ╲  ╶╴  ╱ │  │╭┤ │    ╲   │         │  │  │  ╰╯",
-    "·       └┼╯ ╱  ◯ ╰╯╰   ╰ ╯         │    · ╱      │  ╲    ╱  ·  │╰╯ └╴    ╲ ╶┙    ╶╴   ╰╴ ╵ ╶╯    ",
-    "                                                               ╰─╯                               ",
+    "╷ ╷╷    ╭┼╮ ╭╮   ╭╮╷ ╷ ╭ ╮                    ╱      ╱    ╲  ╭╮ ╭─╮ ┌╴ ╲    ╶┐ ╱╲    ╲ ╭╴ ╷ ╶╮    ",
+    "│    ┼┼ ╰┼╮ ╰╯╱  ├─┼   │ │ ╶╳╴ ╶┼╴   ╶─╴     ╱  .   ╱  ══  ╲ ╭╯ │╭┤ │   ╲    │         ┼  │  ┼ ╭╮ ",
+    "│    ┼┼  ││  ╱╭╮ │ │   │ │                  ╱   . . ╲      ╱ │  │╰╯ │    ╲   │         │  │  │  ╰╯",
+    "·       └┼╯   ╰╯ ╰╯╰   ╰ ╯         ╵     · ╱      ╵  ╲    ╱  ·  ╰─╯ └╴    ╲ ╶┙    ╶╴   ╰╴ ╵ ╶╯    ",
+    "                                                                                                  ",
 )
 
-LIGATURES = Glyphs(
-    [
-        "re",
-        "ra",
-        "ri",
-        "ro",
-        "ru",
-        "fb",
-        "ff",
-        "fh",
-        "fi",
-        "fj",
-        "fk",
-        "fl",
-        "ft",
-        "ffb",
-        "fff",
-        "ffh",
-        "ffi",
-        "ffj",
-        "ffk",
-        "ffl",
-        "fft",
-    ],
+_ligatures = Glyphs(
+    list(
+        "re ra ri ro ru fb ff fh fi fj fk fl ft ffb fff ffh ffi ffj ffk ffl fft".split()
+    ),
     "         .         ╭┐  ╭╭╮ ╭┐  ╭╮ ╭╮ ╭┐  ╭┐ ╭┐ ╭╭┐  ╭╭╭╮ ╭╭┐  ╭╭╮ ╭╭╮ ╭╭┐  ╭╭┐ ╭╭┐",
     "┬┬╮ ┬╮╮ ┬┐ ┬┬╮ ┬┐╷ ┼├╮ ┼┼  ┼├╮ ┼┐ ┼┐ ┼│╷ ┼│ ┼┼ ┼┼├╮ ┼┼┼  ┼┼├╮ ┼┼┐ ┼┼┐ ┼┼│╷ ┼┼│ ┼┼┼",
     "│├┘ │╭┤ ││ │││ │││ │││ ││  │││ ││ ││ │├╮ ││ ││ ││││ │││  ││││ │││ │││ ││├╮ │││ │││",
@@ -72,8 +53,8 @@ LIGATURES = Glyphs(
 
 SEMISERIF = Font(
     "Semi Serif",
-    UPPER | LOWER | DIGITS | PUNCTUATION,
-    ligatures=LIGATURES,
+    _upper | _lower | _digits | _punctuation,
+    ligatures=_ligatures,
     baseline=3,
 )
 
@@ -84,8 +65,8 @@ if __name__ == "__main__":  # pragma: no cover
 
     console = Console()
     console.print(Typography("Semiserif", font=SEMISERIF))
-    console.print(str(UPPER))
-    console.print(str(LOWER))
-    console.print(str(DIGITS))
-    console.print(str(PUNCTUATION))
-    console.print(str(LIGATURES))
+    console.print(str(_upper))
+    console.print(str(_lower))
+    console.print(str(_digits))
+    console.print(str(_punctuation))
+    console.print(str(_ligatures))
