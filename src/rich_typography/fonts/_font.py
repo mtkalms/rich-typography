@@ -3,7 +3,7 @@ from typing import Any, Dict, Iterable, List, Optional, Union
 from rich_typography.fonts._line import LineStyle
 from rich_typography.glyphs import Glyph, Glyphs
 
-NON_OVERLAPPING = ' "'
+NON_OVERLAPPING = " \"'"
 
 
 class Font:
