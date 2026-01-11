@@ -121,39 +121,86 @@ class Glyphs(dict):
         )
 
     @classmethod
-    def merge_line(cls, left: str, right: str, offset: int = 0) -> str:
+    def merge_line(cls, left: str, right: str, spacing: int = 0) -> str:
         """Merge two lines. In case of overlapping non-space characters, the right line will occlude the left line.
 
         Args:
             left (str): Left line.
             right (str): Right line.
-            offset (int): Offset between left and right in number of cells. Defaults to 0.
+            spacing (int): Space between left and right in number of cells. Defaults to 0.
 
         Returns:
             str: Merged line.
         """
-        if offset >= 0:
-            return left + (" " * offset) + right
+        if spacing >= 0:
+            return left + (" " * spacing) + right
         else:
             return (
-                left[:offset]
+                left[:spacing]
                 + "".join(
                     ll if lr.isspace() else lr
-                    for ll, lr in zip(left[offset:], right[:-offset])
+                    for ll, lr in zip(left[spacing:], right[:-spacing])
                 )
-                + right[-offset:]
+                + right[-spacing:]
             )
 
     @classmethod
-    def merge(cls, left: Glyph, right: Glyph, offset: int) -> Glyph:
+    def merge(cls, left: Glyph, right: Glyph, spacing: int = 0) -> Glyph:
         """Merges two glyphs. In case of overlapping non-space characters, the right glyph will occlude the left glyph.
 
         Args:
             left (Glyph): Left glyph.
             right (Glyph): Right glyph.
-            offset (int): Offset between left and right in number of cells. Defaults to 0.
+            spacing (int): Space between left and right in number of cells. Defaults to 0.
 
         Returns:
             Glyph: Merged glyph.
         """
-        return [cls.merge_line(ll, lr, offset) for ll, lr in zip(left, right)]
+        return [cls.merge_line(ll, lr, spacing) for ll, lr in zip(left, right)]
+
+    @classmethod
+    def boundary(cls, left: Glyph, right: Glyph, spacing: int) -> List[int]:
+        """Calculates the boundary between two glyphs.
+
+        Args:
+            left (Glyph): Left glyph.
+            right (Glyph): Right glyph.
+            spacing (int): Space between left and right in number of cells.
+
+        Returns:
+            List[int]: Boundary in offsets from the end of the left glyph.
+        """
+        line_height = len(left)
+        return [
+            min(
+                min(0, spacing + Glyphs.line_lead(right[row])),
+                max(spacing, -Glyphs.line_trail(left[row])),
+            )
+            for row in range(line_height)
+        ]
+
+    @classmethod
+    def bg_boundary(cls, left: Glyph, right: Glyph, spacing: int) -> List[int]:
+        """Calculates the background boundary between two glyphs.
+
+        Args:
+            left (Glyph): Left glyph.
+            right (Glyph): Right glyph.
+            spacing (int): Space between left and right in number of cells.
+
+        Returns:
+            List[int]: Boundary in offsets from the end of the left glyph.
+        """
+        line_height = len(left)
+        offsets = [0] * line_height
+        for d in range(abs(spacing)):
+            majority = sum(
+                (1 if left[row][-(d + 1)] not in " " else 0)
+                - (1 if right[row][abs(spacing) - (d + 1)] not in " " else 0)
+                for row in range(line_height)
+            )
+            if majority > 0:
+                break
+            else:
+                offsets = [-(d + 1)] * line_height
+        return offsets
