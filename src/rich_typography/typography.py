@@ -98,7 +98,6 @@ class Typography:
         justify (str, optional): Justify method: "left", "center", "full", "right". Defaults to None.
         overflow (str, optional): Overflow method: "crop", "fold", "ellipsis". Defaults to None.
         no_wrap (bool, optional): Disable text wrapping, or None for default. Defaults to None.
-        end (str, optional): Character to end text with. Defaults to "\\\\n".
         tab_size (int): Number of spaces per tab, or ``None`` to use ``console.tab_size``. Defaults to None.
         spans (List[Span], optional): A list of predefined style spans. Defaults to None.
         font (Font, optional): Font used to render text. Defaults to SEMISERIF.
@@ -133,7 +132,6 @@ class Typography:
         justify: Optional["JustifyMethod"] = None,
         overflow: Optional["OverflowMethod"] = None,
         no_wrap: Optional[bool] = None,
-        end: str = "\n",
         tab_size: Optional[int] = None,
         spans: Optional[List[Span]] = None,
         font: Font = SEMISERIF,
@@ -149,7 +147,6 @@ class Typography:
         self.justify: Optional["JustifyMethod"] = justify
         self.overflow: Optional["OverflowMethod"] = overflow
         self.no_wrap = no_wrap
-        self.end = end
         self.tab_size = tab_size
         self._spans: List[Span] = spans or []
         self.font = font
@@ -287,7 +284,6 @@ class Typography:
             justify=self.justify,
             overflow=self.overflow,
             no_wrap=self.no_wrap,
-            end=self.end,
             tab_size=self.tab_size,
             spans=self._spans[:],
             font=self.font,
@@ -328,7 +324,6 @@ class Typography:
             justify=text.justify,
             overflow=text.overflow,
             no_wrap=text.no_wrap,
-            end=text.end,
             tab_size=text.tab_size,
             font=font,
             adjust_spacing=adjust_spacing,
@@ -347,7 +342,6 @@ class Typography:
         emoji_variant: Optional[EmojiVariant] = None,
         justify: Optional["JustifyMethod"] = None,
         overflow: Optional["OverflowMethod"] = None,
-        end: str = "\n",
         font: Font = SEMISERIF,
         adjust_spacing: int = 0,
         use_kerning: bool = True,
@@ -381,7 +375,6 @@ class Typography:
                 emoji_variant=emoji_variant,
                 justify=justify,
                 overflow=overflow,
-                end=end,
             ),
             font=font,
             adjust_spacing=adjust_spacing,
@@ -402,7 +395,6 @@ class Typography:
             justify=self.justify,
             overflow=self.overflow,
             no_wrap=self.no_wrap,
-            end=self.end,
             tab_size=self.tab_size,
             spans=self._spans[:],
         )
