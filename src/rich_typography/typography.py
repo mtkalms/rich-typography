@@ -35,21 +35,6 @@ LINE_STYLE_RESET = Style(
 )
 
 
-def neighbours(numbers: List[int], target: int) -> Tuple[Optional[int], Optional[int]]:
-    right = bisect.bisect_right(numbers, target)
-    left = right - 1
-    return (
-        numbers[left] if left >= 0 else None,
-        numbers[right] if right < len(numbers) else None,
-    )
-
-
-def has_background(style: Optional[Style]):
-    if not style or not style.bgcolor:
-        return False
-    return style.bgcolor != ColorType.STANDARD
-
-
 @dataclass
 class MutableSpan:
     start: int
@@ -208,29 +193,7 @@ class Typography:
             value -= Glyphs.max_overlap(*map(self.font.get, [left, right]))
         return value
 
-    def split_glyphs(self, text: str) -> Dict[int, str]:
-        """Splits text into individual glyphs, based on the available ligatires in the font.
-
-        Args:
-            text (str): _description_
-
-        Returns:
-            Dict[int, str]: _description_
-        """
-        if not self.use_ligatures:
-            return dict(enumerate(text))
-        glyphs: Dict[int, str] = {}
-        last = 0
-        if not self.font.ligatures:
-            return dict(enumerate(text))
-        ligatures = reversed(sorted(self.font.ligatures, key=len))
-        for ligature in re.finditer("|".join(ligatures), text):
-            start, end = ligature.span()
-            glyphs |= dict(enumerate(text[last:start], last))
-            glyphs[start] = text[start:end]
-            last = end
-        glyphs |= dict(enumerate(text[last:], last))
-        return glyphs
+    # OPERATOR OVERRIDES
 
     def __len__(self) -> int:
         return self._length
@@ -256,28 +219,10 @@ class Typography:
             return other.plain in self.plain
         return False
 
-    def rendered_width(self, text: str) -> int:
-        """Get length of rendered text with current settings.
-
-        Args:
-            text (str): Text.
-
-        Returns:
-            int: Length of rendered text.
-        """
-
-        def glyph_width(c: str) -> int:
-            return len(self.font.get(c)[0])
-
-        if not text:
-            return 0
-        glyphs = list(self.split_glyphs(text).values())
-        width = glyph_width(glyphs[0])
-        for a, b in zip(glyphs[:-1], glyphs[1:]):
-            width += glyph_width(b) + self.letter_adjust(a, b)
-        return width
+    # CONVERTERS
 
     def copy(self) -> "Typography":
+        """Return a copy of this instance."""
         return Typography(
             self.plain,
             style=self.style,
@@ -399,10 +344,50 @@ class Typography:
             spans=self._spans[:],
         )
 
-    def set_cell_size(self, text: str, width: int) -> str:
-        while self.rendered_width(text) > width:
-            text = text[:-1]
-        return text
+    def rendered_width(self, text: str) -> int:
+        """Get length of rendered text with current settings.
+
+        Args:
+            text (str): Text.
+
+        Returns:
+            int: Length of rendered text.
+        """
+
+        def glyph_width(c: str) -> int:
+            return len(self.font.get(c)[0])
+
+        if not text:
+            return 0
+        glyphs = list(self.split_glyphs(text).values())
+        width = glyph_width(glyphs[0])
+        for a, b in zip(glyphs[:-1], glyphs[1:]):
+            width += glyph_width(b) + self.letter_adjust(a, b)
+        return width
+
+    def split_glyphs(self, text: str) -> Dict[int, str]:
+        """Splits text into individual glyphs, based on the available ligatures in the font.
+
+        Args:
+            text (str): _description_
+
+        Returns:
+            Dict[int, str]: _description_
+        """
+        if not self.use_ligatures:
+            return dict(enumerate(text))
+        glyphs: Dict[int, str] = {}
+        last = 0
+        if not self.font.ligatures:
+            return dict(enumerate(text))
+        ligatures = reversed(sorted(self.font.ligatures, key=len))
+        for ligature in re.finditer("|".join(ligatures), text):
+            start, end = ligature.span()
+            glyphs |= dict(enumerate(text[last:start], last))
+            glyphs[start] = text[start:end]
+            last = end
+        glyphs |= dict(enumerate(text[last:], last))
+        return glyphs
 
     def truncate(
         self,
@@ -410,22 +395,28 @@ class Typography:
         *,
         overflow: Optional[OverflowMethod],
     ) -> None:
-        """Truncate text if it is longer that a given width.
+        """Truncate text if it is longer than a given width.
 
         Args:
             max_width (int): Maximum number of characters in text.
             overflow (str, optional): Overflow method: "crop", "fold", or "ellipsis". Defaults to None, to use self.overflow.
         """
+
+        def set_cell_size(text: str, width: int) -> str:
+            while self.rendered_width(text) > width:
+                text = text[:-1]
+            return text
+
         _overflow = overflow or self.overflow or DEFAULT_OVERFLOW
-        if _overflow != "ignore":
-            length = self.rendered_width(self.plain)
-            if length > max_width:
-                if _overflow == "ellipsis":
-                    ellipsis = "…" if "…" in self.font else "..."
-                    max_width -= self.rendered_width(ellipsis)
-                    self.plain = self.set_cell_size(self.plain, max_width) + ellipsis
-                else:
-                    self.plain = self.set_cell_size(self.plain, max_width)
+        length = self.rendered_width(self.plain)
+        if _overflow == "ignore" or length <= max_width:
+            return
+        if _overflow == "ellipsis":
+            ellipsis = "…" if "…" in self.font else "..."
+            max_width -= self.rendered_width(ellipsis)
+            self.plain = set_cell_size(self.plain, max_width) + ellipsis
+        else:
+            self.plain = set_cell_size(self.plain, max_width)
 
     def wrap(
         self,
@@ -457,10 +448,10 @@ class Typography:
             if no_wrap:
                 new_lines = [line]
             else:
-                offsets = self.divide(str(line), width, wrap_overflow == "fold")
+                offsets = self._divide_offsets(
+                    str(line), width, wrap_overflow == "fold"
+                )
                 new_lines = line.divide(offsets)
-            # for line in new_lines:
-            #     line.rstrip_end(width)
             lines.extend(new_lines)
         typography_lines = [
             Typography.from_text(
@@ -477,185 +468,7 @@ class Typography:
             line.truncate(width, overflow=overflow)
         return typography_lines
 
-    def chop_cells(self, text: str, width: int) -> Iterable[str]:
-        result = []
-        lst, curr = 0, 1
-        while curr < len(text):
-            while curr < len(text) and self.rendered_width(text[lst:curr]) <= width:
-                curr += 1
-            result.append(text[lst:curr])
-            lst = curr
-        if lst < curr:
-            result.append(text[lst:curr])
-        return result
-
-    def divide(self, text: str, width: int, fold: bool) -> Iterable[int]:
-        offsets = []
-        space_length = self.font.space_width
-        offset = 0
-        length = 0
-        for word in text.split(" "):
-            remaining = width - length - space_length
-            word_length = self.rendered_width(word)
-            if word_length > remaining:
-                if (
-                    fold
-                    and word_length > width
-                    and self.rendered_width(word[0]) <= remaining
-                ):
-                    fold_offset = 1
-                    while self.rendered_width(word[: fold_offset + 1]) <= remaining:
-                        fold_offset += 1
-                    part = word[:fold_offset]
-                    part_length = self.rendered_width(part)
-                    if offset > 0:
-                        offset += 1
-                    offset += fold_offset
-                    if length > 0:
-                        length += space_length
-                    length += part_length
-                    for part in self.chop_cells(word[fold_offset:], width):
-                        offsets.append(offset)
-                        offset += len(part)
-                        length = self.rendered_width(part)
-                else:
-                    if length > 0 or not word:
-                        length += space_length
-                    length = word_length
-                    if offset > 0 or not word:
-                        offset += 1
-                    offsets.append(offset)
-                    offset += len(word)
-            else:
-                if length > 0 or not word:
-                    length += space_length
-                length += word_length
-                if offset > 0 or not word:
-                    offset += 1
-                offset += len(word)
-        offsets.append(offset)
-        return offsets
-
-    def glyph_borders(self, text: str) -> List[int]:
-        result = list(range(len(text)))
-        if not (self.use_ligatures and self.font.ligatures):
-            return result
-        ligatures = reversed(sorted(self.font.ligatures, key=len))
-        for ligature in re.finditer("|".join(ligatures), text):
-            start, end = ligature.span()
-            for d in range(start + 1, end):
-                result.remove(d)
-        return result
-
-    def style_borders(
-        self,
-        console: Console,
-        width: int,
-    ) -> List[Tuple[int, Optional[Style]]]:
-        def combine_styles(styles: Iterable[Union[Style, str]]) -> Optional[Style]:
-            get_style = partial(console.get_style, default=Style.null())
-            style_list = list(styles)
-            if not style_list:
-                return None
-            return Style.combine(get_style(d) for d in style_list)
-
-        styles: List[Union[Style, str]] = [console.get_style(self.style)]
-        borders: Dict[int, List[Tuple[int, int]]] = {
-            0: [(1, 0)],
-            len(self.plain): [(-1, 0)],
-        }
-        for idx, span in enumerate(self.spans, 1):
-            borders[span.start] = borders.get(span.start, []) + [(1, idx)]
-            borders[span.end] = borders.get(span.end, []) + [(-1, idx)]
-            styles.append(span.style)
-
-        stack: List[int] = []
-        result: List[Tuple[int, Optional[Style]]] = []
-        for pos in sorted(borders):
-            for direction, idx in sorted(borders[pos]):
-                if direction > 0:
-                    stack.append(idx)
-                else:
-                    stack.remove(idx)
-            if pos < width:
-                result.append(
-                    (pos, combine_styles(styles[d] for d in stack if styles[d]))
-                )
-        if 0 not in borders:
-            result.insert(0, (0, None))
-        return result
-
-    def style_fragments(
-        self, text: str, console: Console
-    ) -> List[Tuple[str, Optional[Style]]]:
-        glyphs = self.glyph_borders(text)
-        styles = self.style_borders(console, len(text))
-        if self.use_ligatures:
-            corrected = {}
-            for pos, style in styles:
-                if pos in glyphs:
-                    corrected[pos] = style
-                else:
-                    prv, nxt = neighbours(glyphs, pos)
-                    if prv is not None and self.style_ligatures == "last":
-                        corrected[prv] = style
-                    elif nxt is not None:
-                        corrected[nxt] = style
-        else:
-            corrected = dict(styles)
-        result = []
-        segment_ends = list(corrected.keys())[1:] + [(len(text))]
-        for (start, style), end in zip(corrected.items(), segment_ends):
-            result.append((text[start:end], style))
-        return result
-
-    def _overlay_styles(self, fg: Optional[Style], bg: Optional[Style]):
-        _fg = fg or Style.null()
-        _bg = bg or Style.null()
-        return Style(
-            color=_fg.color,
-            blink=_fg.blink,
-            bgcolor=_bg.bgcolor,
-            underline=_bg.underline,
-        )
-
-    def _justify_full(
-        self, width: int, line: str, spans: List[Tuple[str, Optional[Style]]]
-    ) -> List[Tuple[str, Optional[Style]]]:
-        space_width = self.font.space_width
-        line = line.rstrip()
-        line_width = self.rendered_width(line)
-        words = line.split(" ")
-        num_spaces = len(words) - 1
-        words_size = line_width - (num_spaces * space_width)
-        spaces = [1 for d in range(num_spaces)]
-        index = 0
-        if spaces:
-            while words_size + num_spaces * space_width < width:
-                spaces[len(spaces) - index - 1] += 1
-                num_spaces += 1
-                index = (index + 1) % len(spaces)
-        adjusted_line = "".join(
-            word + (" " * space) for word, space in zip(words, spaces + [0])
-        )
-        result = []
-        pos = 0
-        for txt, style in spans:
-            end = pos + len(txt)
-            spaces_before_pos = line[:pos].count(" ")
-            spaces_before_end = line[:end].count(" ")
-            _pos = pos + sum(spaces[:spaces_before_pos]) - spaces_before_pos
-            _end = end + sum(spaces[:spaces_before_end]) - spaces_before_end
-            result.append((adjusted_line[_pos:_end], style))
-            pos = end
-        return result
-
-    def should_overlap(self, a: Optional[str], b: Optional[str]) -> bool:
-        if not a or not b:
-            return False
-        return (
-            self.use_kerning and a not in NON_OVERLAPPING and b not in NON_OVERLAPPING
-        )
+    # RENDERING
 
     def render(
         self,
@@ -665,13 +478,31 @@ class Typography:
         justify: Optional["JustifyMethod"] = None,
         overflow: Optional["OverflowMethod"] = None,
     ) -> Iterable["Segment"]:
+        """Render as Segments.
+
+        Args:
+            console (Console): Console instance.
+            width (int): Number of cells available.
+            justify (str, optional): Justify method: "default", "left", "center", "full", "right". Defaults to "default".
+            overflow (str, optional): Overflow method: "crop", "fold", or "ellipsis". Defaults to None.
+
+
+        Returns:
+            Iterable[Segment]: Result of render that may be written to the console.
+        """
+
+        def has_background(style: Optional[Style]):
+            if not style or not style.bgcolor:
+                return False
+            return style.bgcolor != ColorType.STANDARD
+
         wrap_justify = justify or self.justify or DEFAULT_JUSTIFY
         # wrap_overflow = overflow or self.overflow or DEFAULT_OVERFLOW
         line_height = self.font.line_height
         letter_spacing = self.font.letter_spacing
         for line in self.plain.splitlines():
             # Align style borders to glyphs
-            fragments = self.style_fragments(line, console)
+            fragments = self._style_fragments(line, console)
             # Right-strip if appropriate for justify method
             if wrap_justify in ["right", "center", "justify"]:
                 line = line.rstrip()
@@ -709,12 +540,12 @@ class Typography:
                         fragment = letter
                     else:
                         spacing = letter_spacing + self.adjust_spacing
-                        if self.should_overlap(fragment_char, char):
+                        if self._should_overlap(fragment_char, char):
                             spacing -= Glyphs.max_overlap(fragment, letter)
                         fragment = Glyphs.merge(fragment, letter, spacing)
                     fragment_char = char
                 fragment_spacing = letter_spacing + self.adjust_spacing
-                if self.should_overlap(last_char, fragment_text[0]):
+                if self._should_overlap(last_char, fragment_text[0]):
                     fragment_spacing -= Glyphs.max_overlap(row_chars, fragment)
                 last_char = fragment_char
                 # Determine if styles overlap
@@ -831,3 +662,201 @@ class Typography:
         )
         minimum = max(self.rendered_width(g) for g in glyphs)
         return Measurement(minimum, self.rendered_width(self.plain))
+
+    # PRIVATE
+
+    def _chop_cells(self, text: str, width: int) -> Iterable[str]:
+        result = []
+        lst, curr = 0, 1
+        while curr < len(text):
+            while curr < len(text) and self.rendered_width(text[lst:curr]) <= width:
+                curr += 1
+            result.append(text[lst:curr])
+            lst = curr
+        if lst < curr:
+            result.append(text[lst:curr])
+        return result
+
+    def _divide_offsets(
+        self,
+        text: str,
+        width: int,
+        fold: bool,
+    ) -> Iterable[int]:
+        offsets = []
+        space_length = self.font.space_width
+        offset = 0
+        length = 0
+        for word in text.split(" "):
+            remaining = width - length - space_length
+            word_length = self.rendered_width(word)
+            if word_length > remaining:
+                if (
+                    fold
+                    and word_length > width
+                    and self.rendered_width(word[0]) <= remaining
+                ):
+                    fold_offset = 1
+                    while self.rendered_width(word[: fold_offset + 1]) <= remaining:
+                        fold_offset += 1
+                    part = word[:fold_offset]
+                    part_length = self.rendered_width(part)
+                    if offset > 0:
+                        offset += 1
+                    offset += fold_offset
+                    if length > 0:
+                        length += space_length
+                    length += part_length
+                    for part in self._chop_cells(word[fold_offset:], width):
+                        offsets.append(offset)
+                        offset += len(part)
+                        length = self.rendered_width(part)
+                else:
+                    if length > 0 or not word:
+                        length += space_length
+                    length = word_length
+                    if offset > 0 or not word:
+                        offset += 1
+                    offsets.append(offset)
+                    offset += len(word)
+            else:
+                if length > 0 or not word:
+                    length += space_length
+                length += word_length
+                if offset > 0 or not word:
+                    offset += 1
+                offset += len(word)
+        offsets.append(offset)
+        return offsets
+
+    def _glyph_borders(self, text: str) -> List[int]:
+        result = list(range(len(text)))
+        if not (self.use_ligatures and self.font.ligatures):
+            return result
+        ligatures = reversed(sorted(self.font.ligatures, key=len))
+        for ligature in re.finditer("|".join(ligatures), text):
+            start, end = ligature.span()
+            for d in range(start + 1, end):
+                result.remove(d)
+        return result
+
+    def _style_borders(
+        self,
+        console: Console,
+        width: int,
+    ) -> List[Tuple[int, Optional[Style]]]:
+        def combine_styles(styles: Iterable[Union[Style, str]]) -> Optional[Style]:
+            get_style = partial(console.get_style, default=Style.null())
+            style_list = list(styles)
+            if not style_list:
+                return None
+            return Style.combine(get_style(d) for d in style_list)
+
+        styles: List[Union[Style, str]] = [console.get_style(self.style)]
+        borders: Dict[int, List[Tuple[int, int]]] = {
+            0: [(1, 0)],
+            len(self.plain): [(-1, 0)],
+        }
+        for idx, span in enumerate(self.spans, 1):
+            borders[span.start] = borders.get(span.start, []) + [(1, idx)]
+            borders[span.end] = borders.get(span.end, []) + [(-1, idx)]
+            styles.append(span.style)
+
+        stack: List[int] = []
+        result: List[Tuple[int, Optional[Style]]] = []
+        for pos in sorted(borders):
+            for direction, idx in sorted(borders[pos]):
+                if direction > 0:
+                    stack.append(idx)
+                else:
+                    stack.remove(idx)
+            if pos < width:
+                result.append(
+                    (pos, combine_styles(styles[d] for d in stack if styles[d]))
+                )
+        if 0 not in borders:
+            result.insert(0, (0, None))
+        return result
+
+    def _style_fragments(
+        self, text: str, console: Console
+    ) -> List[Tuple[str, Optional[Style]]]:
+        def neighbours(
+            numbers: List[int], target: int
+        ) -> Tuple[Optional[int], Optional[int]]:
+            right = bisect.bisect_right(numbers, target)
+            left = right - 1
+            return (
+                numbers[left] if left >= 0 else None,
+                numbers[right] if right < len(numbers) else None,
+            )
+
+        glyphs = self._glyph_borders(text)
+        styles = self._style_borders(console, len(text))
+        if self.use_ligatures:
+            corrected = {}
+            for pos, style in styles:
+                if pos in glyphs:
+                    corrected[pos] = style
+                else:
+                    prv, nxt = neighbours(glyphs, pos)
+                    if prv is not None and self.style_ligatures == "last":
+                        corrected[prv] = style
+                    elif nxt is not None:
+                        corrected[nxt] = style
+        else:
+            corrected = dict(styles)
+        result = []
+        segment_ends = list(corrected.keys())[1:] + [(len(text))]
+        for (start, style), end in zip(corrected.items(), segment_ends):
+            result.append((text[start:end], style))
+        return result
+
+    def _overlay_styles(self, fg: Optional[Style], bg: Optional[Style]):
+        _fg = fg or Style.null()
+        _bg = bg or Style.null()
+        return Style(
+            color=_fg.color,
+            blink=_fg.blink,
+            strike=_fg.strike,
+            bgcolor=_bg.bgcolor,
+            underline=_bg.underline,
+            underline2=_bg.underline2,
+            overline=_bg.overline,
+        )
+
+    def _justify_full(
+        self, width: int, line: str, spans: List[Tuple[str, Optional[Style]]]
+    ) -> List[Tuple[str, Optional[Style]]]:
+        space_width = self.font.space_width
+        line = line.rstrip()
+        line_width = self.rendered_width(line)
+        words = line.split(" ")
+        num_spaces = len(words) - 1
+        words_size = line_width - (num_spaces * space_width)
+        spaces = [1 for d in range(num_spaces)]
+        index = 0
+        if spaces:
+            while words_size + num_spaces * space_width < width:
+                spaces[len(spaces) - index - 1] += 1
+                num_spaces += 1
+                index = (index + 1) % len(spaces)
+        adjusted_line = "".join(
+            word + (" " * space) for word, space in zip(words, spaces + [0])
+        )
+        result = []
+        pos = 0
+        for txt, style in spans:
+            end = pos + len(txt)
+            spaces_before_pos = line[:pos].count(" ")
+            spaces_before_end = line[:end].count(" ")
+            _pos = pos + sum(spaces[:spaces_before_pos]) - spaces_before_pos
+            _end = end + sum(spaces[:spaces_before_end]) - spaces_before_end
+            result.append((adjusted_line[_pos:_end], style))
+            pos = end
+        return result
+
+    def _should_overlap(self, a: Optional[str], b: Optional[str]) -> bool:
+        if not a or not b:
+            return False
+        return self.use_kerning and not any(c in NON_OVERLAPPING for c in [a, b])
