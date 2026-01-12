@@ -50,6 +50,11 @@ class Font:
         self._placeholder = self.placeholder(self.line_height)
 
     @property
+    def name(self) -> str:
+        """Name of the Font."""
+        return self._name
+
+    @property
     def line_height(self) -> int:
         """Number of lines per glyph."""
         return self._line_height
