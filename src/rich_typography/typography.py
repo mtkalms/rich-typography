@@ -17,6 +17,7 @@ from rich.segment import Segment
 from rich.style import Style
 from rich.text import Span, Text
 from rich.emoji import EmojiVariant
+from rich.jupyter import JupyterMixin
 from rich.measure import Measurement
 
 from rich_typography.fonts import SEMISERIF, Font, NON_OVERLAPPING, LineStyle
@@ -74,7 +75,7 @@ class MutableSpan:
         return list(reversed(result))
 
 
-class Typography:
+class Typography(JupyterMixin):
     """Large text with color and style.
 
     Args:
