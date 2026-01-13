@@ -12,6 +12,7 @@ __all__ = [
     # FONTS
     "SANSSERIF",
     "SEMISERIF",
+    "SERIF",
 ]
 
 
