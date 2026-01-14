@@ -6,17 +6,17 @@ from rich_typography.glyphs import Glyphs
 
 _upper = Glyphs(
     string.ascii_uppercase,
-    "𜸚𜸤 𜸛𜸤 𜸚𜸤 𜸛𜸤 𜸛𜸥 𜸛𜸥 𜸚𜸤 𜸜𜸜 𜸜 𜸞𜸧 𜸜𜸜 𜸜  𜸝𜸡𜸦 𜸛𜸤 𜸚𜸤 𜸛𜸤 𜸚𜸤 𜸛𜸤 𜸚𜸤 𜸞𜸠𜸥 𜸜𜸜 𜸜𜸜 𜸜𜸜𜸜 𜸜𜸜 𜸜𜸜 𜸞𜸤",
+    "𜸚𜸤 𜸛𜸤 𜸚𜸤 𜸛𜸤 𜸛𜸥 𜸛𜸥 𜸚𜸤 𜸜𜸜 𜸜 𜸞𜸧 𜸜𜸜 𜸜  𜸛𜸠𜸤 𜸛𜸤 𜸚𜸤 𜸛𜸤 𜸚𜸤 𜸛𜸤 𜸚𜸤 𜸞𜸠𜸥 𜸜𜸜 𜸜𜸜 𜸜𜸜𜸜 𜸜𜸜 𜸜𜸜 𜸞𜸤",
     "𜸨𜸶 𜸨𜸷 𜸩𜸼 𜸩𜸩 𜸨  𜸨  𜸩𜸼 𜸨𜸶 𜸩  𜸩 𜸨𜸷 𜸩  𜸩𜸩𜸩 𜸩𜸩 𜸩𜸩 𜸩𜸩 𜸩𜸩 𜸨𜸷 𜸾𜸤  𜸩  𜸩𜸩 𜸩𜸩 𜸩𜸩𜸩 𜸮𜸷 𜸩𜸩 𜸚𜹃",
     "𜸩𜸩 𜸩𜸩 𜸩  𜸩𜸩 𜸩  𜸩  𜸩𜸧 𜸩𜸩 𜸩 𜸜𜸩 𜸩𜸩 𜸩  𜸩𜸩𜸩 𜸩𜸩 𜸩𜸩 𜸨𜹃 𜸩𜸩 𜸩𜸩  𜸩  𜸩  𜸩𜸩 𜸩𜸩 𜸩𜸩𜸩 𜸩𜸩 𜸩𜸩 𜸩 ",
-    "𜸼𜸼 𜸽𜹃 𜸾𜹃 𜸽𜹃 𜸽𜸥 𜸼  𜸾𜹃 𜸼𜸼 𜸼 𜸾𜹃 𜸼𜸼 𜸽𜸥 𜸼𜸼𜸼 𜸼𜸼 𜸾𜹃 𜸼  𜸾𜹅 𜸼𜸼 𜸾𜹃  𜸼  𜸾𜹃 𜸾𜹄 𜸿𜹂𜹆 𜸼𜸼 𜸾𜸶 𜸾𜸥",
+    "𜸼𜸼 𜸽𜹃 𜸾𜹃 𜸽𜹃 𜸽𜸥 𜸼  𜸾𜹃 𜸼𜸼 𜸼 𜸾𜹃 𜸼𜸼 𜸽𜸥 𜸼𜸼𜸼 𜸼𜸼 𜸾𜹃 𜸼  𜸾𜹅 𜸼𜸼 𜸾𜹃  𜸼  𜸾𜹃 𜸾𜹄 𜸾𜹀𜹃 𜸼𜸼 𜸾𜸶 𜸾𜸥",
     "                                                                          𜸾𜹃   ",
 )
 
 _lower = Glyphs(
     string.ascii_lowercase,
     "   𜸜      𜸜    𜸚𜸤    𜸜  𜸣  𜸣 𜸜  𜸜                       𜸜                   ",
-    "𜸛𜸤 𜸨𜸤 𜸚𜸤 𜸚𜸶 𜸚𜸤 𜸺  𜸚𜸧 𜸨𜸤 𜸜  𜸜 𜸩𜸜 𜸩 𜸛𜸠𜸤 𜸛𜸤 𜸚𜸤 𜸛𜸤 𜸚𜸤 𜸛𜸤 𜸚𜸤 𜸺 𜸜𜸜 𜸜𜸜 𜸜𜸜𜸜 𜸜𜸜 𜸜𜸜 𜸞𜸤",
+    "𜸚𜸤 𜸨𜸤 𜸚𜸤 𜸚𜸶 𜸚𜸤 𜸺  𜸚𜸧 𜸨𜸤 𜸜  𜸜 𜸩𜸜 𜸩 𜸛𜸠𜸤 𜸛𜸤 𜸚𜸤 𜸛𜸤 𜸚𜸤 𜸛𜸤 𜸚𜸤 𜸺 𜸜𜸜 𜸜𜸜 𜸜𜸜𜸜 𜸜𜸜 𜸜𜸜 𜸞𜸤",
     "𜸚𜸶 𜸩𜸩 𜸩  𜸩𜸩 𜸨𜹄 𜸩  𜸩𜸩 𜸩𜸩 𜸩  𜸩 𜸨𜸷 𜸩 𜸩𜸩𜸩 𜸩𜸩 𜸩𜸩 𜸩𜸩 𜸩𜸩 𜸩  𜸾𜸤 𜸩 𜸩𜸩 𜸩𜸩 𜸩𜸩𜸩 𜸮𜸷 𜸩𜸩 𜸚𜹃",
     "𜸾𜹃 𜸽𜹃 𜸾𜹃 𜸾𜹄 𜸾𜹃 𜸼  𜸾𜸶 𜸼𜸼 𜸼  𜸩 𜸼𜸼 𜸾 𜸼𜸼𜸼 𜸼𜸼 𜸾𜹃 𜸨𜹃 𜸾𜸶 𜸼  𜸾𜹃 𜸾 𜸾𜹃 𜸾𜹄 𜸾𜹀𜹃 𜸼𜸼 𜸾𜸶 𜸾𜸥",
     "                  𜸾𜹃      𜸾𜹃                𜸼   𜸼                      𜸾𜹃   ",
@@ -51,8 +51,8 @@ _ligatures = Glyphs(
     "           𜸾𜹃                        𜸾𜹃                               𜸾𜹃                        𜸾𜹃",
 )
 
-SANSSERIF = Font(
-    "Sansserif",
+CONDENSED_SANS = Font(
+    "Condensed Sans",
     _upper | _lower | _digits | _punctuation,
     ligatures=_ligatures,
     baseline=3,
@@ -66,8 +66,8 @@ if __name__ == "__main__":  # pragma: no cover
     console = Console()
     console.print(
         Typography(
-            SANSSERIF.name,
-            font=SANSSERIF,
+            CONDENSED_SANS.name,
+            font=CONDENSED_SANS,
         )
     )
     console.print(str(_upper))
