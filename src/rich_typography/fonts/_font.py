@@ -1,4 +1,8 @@
+from pathlib import Path
+import string
 from typing import Any, Dict, Iterable, List, Optional, Union
+
+from configparser import ConfigParser
 
 from rich_typography.fonts._line import LineStyle
 from rich_typography.glyphs import Glyph, Glyphs
@@ -15,7 +19,7 @@ class Font:
         ligatures (Glyphs, optional): Glyphs for ligatures. Defaults to None.
         letter_spacing (int, optional): Spacing between glyphs in number of cells. Defaults to 0.
         space_width (int, optional): Width of space glyph in number of cells. Defaults to 1.
-        baseline (Union[int, LineStyle], optional): Line index of baseline. Defaults to second to last line.
+        baseline (int, optional): Line index of baseline. Defaults to second to last line.
         underline (Union[int, LineStyle], optional): Line index or more complex style of underline. Defaults to line below baseline.
         underline2 (Union[int, LineStyle], optional): Line index or more complex style of underline2. Defaults to baseline.
         overline (Union[int, LineStyle], optional): Line index or more complex style of overline. Defaults to first line.
@@ -97,7 +101,7 @@ class Font:
     @property
     def ligatures(self) -> Iterable[str]:
         """All available ligatures."""
-        return self._ligatures.keys()
+        return list(self._ligatures.keys())
 
     @classmethod
     def space(cls, width: int, line_height: int) -> Glyph:
@@ -124,7 +128,43 @@ class Font:
         """
         return ["┌─┐"] + ["│ │"] * (line_height - 2) + ["└─┘"]
 
-    def get(self, char: str, *, underline: bool = False) -> Glyph:
+    @classmethod
+    def from_file(cls, path: Union[Path, str]) -> "Font":
+        """Load from glyphs file.
+
+        Args:
+            path (Union[Path, str]): Path to glyphs file.
+
+        Returns:
+            Font: Loaded font.
+        """
+        print(path)
+
+        def split(text: str):
+            lines = [line[2:] for line in text.splitlines() if line]
+            length = max(len(line) for line in lines)
+            return [line.ljust(length) for line in lines]
+
+        path = Path(path)
+        if not path.exists():
+            raise FileNotFoundError("Font file not found.")
+        config = ConfigParser()
+        config.read(path)
+        if "header" not in config:
+            raise KeyError("Font file header missing.")
+        header = {}
+        glyphs = Glyphs.null()
+        ligats = Glyphs.null()
+        for section, data in config.items():
+            if section == "header":
+                header |= {k: (d if k in ["name"] else int(d)) for k, d in data.items()}
+            elif section == "ligatures":
+                ligats |= Glyphs(data["sequences"].split(), *split(data["glyphs"]))
+            elif section in dir(string):
+                glyphs |= Glyphs(getattr(string, section), *split(data["glyphs"]))
+        return Font(**header, glyphs=glyphs, ligatures=ligats)
+
+    def get(self, char: str) -> Glyph:
         """Get glyph for char or ligature.
 
         Args:

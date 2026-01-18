@@ -27,15 +27,21 @@ class Glyphs(dict):
         self._line_height = len(glyphs)
         if not all(len(line) == len(glyphs[0]) for line in glyphs):
             raise ValueError("Glyphs has lines of unqual length.")
-        if len(chars) == 1:
+        if len(chars) == 0:
+            super().__init__({})
+        elif len(chars) == 1:
             super().__init__({chars[0]: list(glyphs)})
         else:
             super().__init__(self.get_char_map(chars, *glyphs, separator=separator))
 
     def __or__(self, other):
-        if not isinstance(other, Glyphs):
+        if other and not isinstance(other, (Glyphs, dict)):
             raise TypeError(f"Unsupported operand type for |: {type(other)}")
-        if other._line_height != self._line_height:
+        elif not other or not isinstance(other, Glyphs) or other._line_height == 0:
+            return self
+        elif self._line_height == 0:
+            return other
+        elif other._line_height != self._line_height:
             raise ValueError(
                 f"Line height missmatch: {other._line_height} != {self._line_height}"
             )
@@ -49,6 +55,11 @@ class Glyphs(dict):
 
     def __repr__(self) -> str:
         return f"<Glyphs: {' '.join(self.keys())}>"
+
+    @classmethod
+    def null(cls) -> "Glyphs":
+        """Create empty glyphs instance."""
+        return Glyphs("")
 
     @classmethod
     def get_char_map(
