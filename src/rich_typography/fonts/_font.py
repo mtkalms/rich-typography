@@ -133,6 +133,20 @@ class Font:
 
     @classmethod
     @lru_cache
+    def _builtin_fonts(cls):
+        parent_folder = Path(__file__).resolve().parent / "files"
+        return {
+            Path(d).stem: parent_folder / d
+            for d in glob(str(parent_folder / "*.glyphs"))
+        }
+
+    @classmethod
+    def get_font_names(cls):
+        """Return list of builtin font names."""
+        return list(cls._builtin_fonts().keys())
+
+    @classmethod
+    @lru_cache
     def from_file(cls, path: Union[Path, str]) -> "Font":
         """Load from glyphs file.
 
@@ -148,11 +162,7 @@ class Font:
             length = max(len(line) for line in lines)
             return [line.ljust(length) for line in lines]
 
-        parent_folder = Path(__file__).resolve().parent / "files"
-        builtin_fonts = {
-            Path(d).stem: parent_folder / d
-            for d in glob(str(parent_folder / "*.glyphs"))
-        }
+        builtin_fonts = cls._builtin_fonts()
         if isinstance(path, str) and path in builtin_fonts:
             path = builtin_fonts[path]
         else:
