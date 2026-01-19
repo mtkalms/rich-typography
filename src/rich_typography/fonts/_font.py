@@ -170,7 +170,7 @@ class Font:
         if not path.exists():
             raise FileNotFoundError("Font file not found.")
         config = ConfigParser()
-        config.read(path)
+        config.read(path, encoding="utf-8")
         if "header" not in config:
             raise KeyError("Font file header missing.")
         header = {}
