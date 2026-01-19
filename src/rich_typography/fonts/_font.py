@@ -42,9 +42,8 @@ class Font:
     ):
         self._name = name
         self._line_height = len(list(glyphs.values())[0])
-        self._glyphs = glyphs | Glyphs.from_lines(
-            " ", *self.space(space_width, self.line_height)
-        )
+        space = Glyphs.from_lines(" ", *self.space(space_width, self.line_height))
+        self._glyphs = glyphs | space
         self._ligatures = ligatures or {}
         self._letter_spacing = letter_spacing
         self._space_width = space_width
@@ -155,12 +154,12 @@ class Font:
             raise KeyError("Font file header missing.")
         header = {}
         glyphs = Glyphs()
-        ligats = Glyphs()
+        ligatures = Glyphs()
         for section, data in config.items():
             if section == "header":
                 header |= {k: (d if k in ["name"] else int(d)) for k, d in data.items()}
             elif section == "ligatures":
-                ligats |= Glyphs.from_lines(
+                ligatures |= Glyphs.from_lines(
                     data["sequences"].split(),
                     *split(data["glyphs"]),
                 )
@@ -169,7 +168,7 @@ class Font:
                     getattr(string, section),
                     *split(data["glyphs"]),
                 )
-        return Font(**header, glyphs=glyphs, ligatures=ligats)
+        return Font(**header, glyphs=glyphs, ligatures=ligatures)
 
     def get(self, char: str) -> Glyph:
         """Get glyph for char or ligature.
