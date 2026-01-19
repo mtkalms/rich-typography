@@ -4,7 +4,7 @@ from rich_typography.fonts import Font
 from rich_typography.glyphs import Glyphs
 
 
-_upper = Glyphs(
+_upper = Glyphs.from_lines(
     string.ascii_uppercase,
     "┬╮ ┬╮ ╭┐ ┬╮ ┬┐ ┬┐ ╭┐ ┐┬ ┬  ┬ ┐┬ ┬  ┬┬╮ ┬╮ ╭╮ ┬╮ ╭╮  ┬╮ ╭┐ ┌┬┐ ┐┬ ┐┬ ┐┬┌ ┐┬ ┐┬ ┌┐",
     "├┤ ├┤ │╵ ││ ├  ├  │╵ ├┤ │  │ ├╯ │  │││ ││ ││ ││ ││  ├╯ ╰╮  │  ││ ││ │││ ╭╯ ││ ╭╯",
@@ -13,7 +13,7 @@ _upper = Glyphs(
     "                                                 ╰╯                        └╯   ",
 )
 
-_lower = Glyphs(
+_lower = Glyphs.from_lines(
     string.ascii_lowercase,
     "   ┐      ┐    ╭╮    ┐  .  . ┐  ┐                       ╷                   ",
     "┌╮ ├╮ ╭┐ ╭┤ ╭╮ ┼  ╭┬ ├╮ ┐  ┐ │┬ │ ┬┬╮ ┬╮ ╭╮ ┬╮ ┬╮ ┬╮ ╭┐ ┼ ┐┬ ┐┬ ┐┬┌ ┐┬ ┐┬ ┌┐",
@@ -22,7 +22,7 @@ _lower = Glyphs(
     "                  └╯      └╯                ┴   ┴                      └╯   ",
 )
 
-_digits = Glyphs(
+_digits = Glyphs.from_lines(
     string.digits,
     "╭╮ ┐ ╭╮ ╭╮ ╷╷ ┌╴ ╭╴ ┌┐ ╭╮ ╭╮",
     "││ │ ╭╯  ┤ ╰┼ └╮ ├╮ ╭╯ ╭╯ ╰┤",
@@ -31,7 +31,7 @@ _digits = Glyphs(
     "                            ",
 )
 
-_punctuation = Glyphs(
+_punctuation = Glyphs.from_lines(
     string.punctuation,
     "╷ ╷╷    ╭┼╮ ╭╮   ╭╮╷ ╷ ╭ ╮                    ╱      ╱    ╲  ╭╮ ╭─╮ ┌╴ ╲    ╶┐ ╱╲    ╲ ╭╴ ╷ ╶╮    ",
     "│    ┼┼ ╰┼╮ ╰╯╱  ├─┼   │ │ ╶╳╴ ╶┼╴   ╶─╴     ╱  .   ╱  ══  ╲ ╭╯ │╭┤ │   ╲    │         ┼  │  ┼ ╭╮ ",
@@ -40,7 +40,7 @@ _punctuation = Glyphs(
     "                                                                                                  ",
 )
 
-_ligatures = Glyphs(
+_ligatures = Glyphs.from_lines(
     list(
         "re ra ri rj ro ru fb ff fh fi fj fk fl ft ffb fff ffh ffi ffj ffk ffl fft Th Ti Tj".split()
     ),

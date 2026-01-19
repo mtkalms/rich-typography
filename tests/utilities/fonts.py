@@ -6,7 +6,7 @@ from rich_typography.glyphs import Glyphs
 
 OVERLAP = Font(
     "Overlap",
-    Glyphs(
+    Glyphs.from_lines(
         ascii_lowercase,
         "   ╷      ╷    ╭╮      ╷  .  . ╷  ╷                       ╷                    ",
         "┌╮ ├╮ ╭┐ ╭┤ ╭╮ ┼    ╭┐ ├╮ ╷  ╷ │╷ │ ┌┬╮ ┌╮ ╭╮ ╭╮ ╭╮ ┌╮ ╭┐ ┼ ╷╷ ╷╷ ╷╷╷ ╷╷  ╷╷ ┌╮",
@@ -14,7 +14,7 @@ OVERLAP = Font(
         "╰┘ └╯ ╰╴ ╰┘ ╰╴ ╵    ╰┤ ╵╵ ╵  │ ╵╵ ╰ ╵╵╵ ╵╵ ╰╯ ├╯ ╰┤ ╵  └╯ ╰ ╰╯ ╰┘ ╰┴╯ ╵╵  ╰┤ ╰┘",
         "                  ╰──╯      ╰╯                ╵   ╵                      ╰─╯   ",
     )
-    | Glyphs(
+    | Glyphs.from_lines(
         ascii_uppercase,
         "┌╮ ┌╮ ╭╮ ┌╮ ┌╴ ┌─╴ ╭╮ ╷╷ ╷  ╷ ╷╷ ╷  ┌┬╮ ┌╮ ╭╮ ┌╮ ╭╮  ┌╮ ╭┐ ╶┬╴ ╷╷ ╷╷ ╷╷╷ ╷╷  ╷╷ ╶╮",
         "├┤ ├┤ │╵ ││ ├  ├   │╵ ├┤ │  │ ├╯ │  │││ ││ ││ ││ ││  ├╯ ╰╮  │  ││ ││ │││ ╭╯  ││ ╭╯",
@@ -22,7 +22,7 @@ OVERLAP = Font(
         "╵╵ └╯ ╰╯ └╯ └╴ ╵   ╰╯ ╵╵ ╵ ╰╯ ╵╵ └╴ ╵╵╵ ╵╵ ╰╯ ╵  ╰┤  ╵╵ └╯  ╵  ╰╯ ╰┘ ╰┴╯ ╵╵  ╰┤ ╰╴",
         "                                                  ╰╯                        ╰─╯   ",
     )
-    | Glyphs(
+    | Glyphs.from_lines(
         ".,",
         "   ",
         "   ",
@@ -30,7 +30,7 @@ OVERLAP = Font(
         "· │",
         "   ",
     ),
-    ligatures=Glyphs(
+    ligatures=Glyphs.from_lines(
         ["re", "ra", "ri", "ro", "ru", "fi", "ff", "ft", "ffi"],
         "         .         ╭╮ ╭╭╮ ╭╷ ╭╭╮",
         "┌┬╮ ┌╮╮ ┌┐ ┌┬╮ ┌┐╷ ┼┐ ┼┼  ┼┼ ┼┼┐",

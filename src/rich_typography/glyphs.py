@@ -6,46 +6,39 @@ Glyph = List[str]
 
 
 class Glyphs(dict):
-    """A glyph dictionary mapping single chars or groups of chars (ligatures) to glyphs.
+    """A glyph dictionary, mapping single chars or groups of chars (ligatures) to glyphs."""
 
-    Args:
-        chars (Union[List[str], str]): String of chars or list of char groups in the same order as glyphs.
-        *glyphs (str): Lines of concatenated glyphs, delimited by full column of separator char.
-        separator (str): Separator char used to separate individual glyphs. Defaults to space.
-
-    Raises:
-        ValueError: Glyph lines are of unequal length.
-        ValueError: Number of glyphs does not match number of chars.
-    """
-
-    def __init__(
-        self,
+    @classmethod
+    def from_lines(
+        cls,
         chars: Union[List[str], str],
         *glyphs: str,
         separator: Optional[str] = None,
-    ):
-        self._line_height = len(glyphs)
-        if not all(len(line) == len(glyphs[0]) for line in glyphs):
-            raise ValueError("Glyphs has lines of unqual length.")
-        if len(chars) == 0:
-            super().__init__({})
-        elif len(chars) == 1:
-            super().__init__({chars[0]: list(glyphs)})
-        else:
-            super().__init__(self.get_char_map(chars, *glyphs, separator=separator))
+    ) -> "Glyphs":
+        """Create a Glyphs instance from lines.
 
-    def __or__(self, other):
-        if other and not isinstance(other, (Glyphs, dict)):
-            raise TypeError(f"Unsupported operand type for |: {type(other)}")
-        elif not other or not isinstance(other, Glyphs) or other._line_height == 0:
-            return self
-        elif self._line_height == 0:
-            return other
-        elif other._line_height != self._line_height:
-            raise ValueError(
-                f"Line height missmatch: {other._line_height} != {self._line_height}"
-            )
-        return super().__or__(other)
+        Args:
+            chars (Union[List[str], str]): String of chars or list of char groups in the same order as glyphs.
+            *glyphs (str): Lines of concatenated glyphs, delimited by full column of separator char.
+            separator (str): Separator char used to separate individual glyphs. Defaults to space.
+
+        Raises:
+            ValueError: Glyph lines are of unequal length.
+            ValueError: Number of glyphs does not match number of chars.
+        """
+        if not all(len(line) == len(glyphs[0]) for line in glyphs):
+            raise ValueError("Line length missmatch.")
+        if len(chars) == 0:
+            return Glyphs({})
+        elif len(chars) == 1:
+            return Glyphs({chars[0]: list(glyphs)})
+        else:
+            return Glyphs(cls.get_char_map(chars, *glyphs, separator=separator))
+
+    @property
+    def line_height(self) -> int:
+        """Line height of glyphs."""
+        return len(list(self.values())[0]) if self else 0
 
     def __str__(self) -> str:
         result = " ".join(c.ljust(len(g[0])) for c, g in self.items())
@@ -55,11 +48,6 @@ class Glyphs(dict):
 
     def __repr__(self) -> str:
         return f"<Glyphs: {' '.join(self.keys())}>"
-
-    @classmethod
-    def null(cls) -> "Glyphs":
-        """Create empty glyphs instance."""
-        return Glyphs("")
 
     @classmethod
     def get_char_map(

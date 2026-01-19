@@ -42,7 +42,9 @@ class Font:
     ):
         self._name = name
         self._line_height = len(list(glyphs.values())[0])
-        self._glyphs = glyphs | Glyphs(" ", *self.space(space_width, self.line_height))
+        self._glyphs = glyphs | Glyphs.from_lines(
+            " ", *self.space(space_width, self.line_height)
+        )
         self._ligatures = ligatures or {}
         self._letter_spacing = letter_spacing
         self._space_width = space_width
@@ -138,7 +140,6 @@ class Font:
         Returns:
             Font: Loaded font.
         """
-        print(path)
 
         def split(text: str):
             lines = [line[2:] for line in text.splitlines() if line]
@@ -153,15 +154,21 @@ class Font:
         if "header" not in config:
             raise KeyError("Font file header missing.")
         header = {}
-        glyphs = Glyphs.null()
-        ligats = Glyphs.null()
+        glyphs = Glyphs()
+        ligats = Glyphs()
         for section, data in config.items():
             if section == "header":
                 header |= {k: (d if k in ["name"] else int(d)) for k, d in data.items()}
             elif section == "ligatures":
-                ligats |= Glyphs(data["sequences"].split(), *split(data["glyphs"]))
+                ligats |= Glyphs.from_lines(
+                    data["sequences"].split(),
+                    *split(data["glyphs"]),
+                )
             elif section in dir(string):
-                glyphs |= Glyphs(getattr(string, section), *split(data["glyphs"]))
+                glyphs |= Glyphs.from_lines(
+                    getattr(string, section),
+                    *split(data["glyphs"]),
+                )
         return Font(**header, glyphs=glyphs, ligatures=ligats)
 
     def get(self, char: str) -> Glyph:
