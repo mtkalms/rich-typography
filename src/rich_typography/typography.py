@@ -21,12 +21,13 @@ from rich.emoji import EmojiVariant
 from rich.jupyter import JupyterMixin
 from rich.measure import Measurement
 
-from rich_typography.fonts import SEMISERIF, Font, NON_OVERLAPPING, LineStyle
+from rich_typography.fonts import Font, NON_OVERLAPPING, LineStyle
 from rich_typography.glyphs import Glyphs
 import bisect
 
 LigatureStyleMethod = Literal["first", "last"]
 
+DEFAULT_FONT = "condensedsemi"
 DEFAULT_JUSTIFY: "JustifyMethod" = "default"
 DEFAULT_OVERFLOW: "OverflowMethod" = "fold"
 LINE_STYLE_RESET = Style(
@@ -87,7 +88,7 @@ class Typography(JupyterMixin):
         no_wrap (bool, optional): Disable text wrapping, or None for default. Defaults to None.
         tab_size (int): Number of spaces per tab, or ``None`` to use ``console.tab_size``. Defaults to None.
         spans (List[Span], optional): A list of predefined style spans. Defaults to None.
-        font (Union[Font, Path, str] optional): Font instance, name or path. Defaults to "semiserif".
+        font (Union[Font, Path, str] optional): Font instance, name or path. Defaults to "condensedsemi".
         adjust_spacing (int, optional): Adjust letter spacing. Defaults to 0.
         use_kerning (bool, optional): Enable automatic kerning. Defaults to True.
         use_ligatures (bool, optional): Enable all ligatures the font provides. Defaults to True.
@@ -121,7 +122,7 @@ class Typography(JupyterMixin):
         no_wrap: Optional[bool] = None,
         tab_size: Optional[int] = None,
         spans: Optional[List[Span]] = None,
-        font: Union[Path, str, Font] = "semiserif",
+        font: Union[Path, str, Font] = "condensedsemi",
         adjust_spacing: int = 0,
         use_kerning: bool = True,
         use_ligatures: bool = True,
@@ -248,7 +249,7 @@ class Typography(JupyterMixin):
         cls,
         text: Text,
         *,
-        font: Font = SEMISERIF,
+        font: Union[Path, str, Font] = "condensedsemi",
         adjust_spacing: int = 0,
         use_kerning: bool = True,
         use_ligatures: bool = True,
@@ -258,7 +259,7 @@ class Typography(JupyterMixin):
 
         Args:
             text (Text): Text instance.
-            font (Font, optional): Font used to render text. Defaults to SEMISERIF.
+            font (Union[Font, Path, str] optional): Font instance, name or path. Defaults to "condensedsemi".
             adjust_spacing (int, optional): Adjust letter spacing. Defaults to 0.
             use_kerning (bool, optional): Enable automatic kerning. Defaults to True.
             use_ligatures (bool, optional): Enable all ligatures the font provides. Defaults to True.
@@ -292,7 +293,7 @@ class Typography(JupyterMixin):
         emoji_variant: Optional[EmojiVariant] = None,
         justify: Optional["JustifyMethod"] = None,
         overflow: Optional["OverflowMethod"] = None,
-        font: Font = SEMISERIF,
+        font: Union[Path, str, Font] = "condensedsemi",
         adjust_spacing: int = 0,
         use_kerning: bool = True,
         use_ligatures: bool = True,
@@ -307,8 +308,7 @@ class Typography(JupyterMixin):
             emoji_variant (str, optional): Optional emoji variant, either "text" or "emoji". Defaults to None.
             justify (str, optional): Justify method: "left", "center", "full", "right". Defaults to None.
             overflow (str, optional): Overflow method: "crop", "fold", "ellipsis". Defaults to None.
-            end (str, optional): Character to end text with. Defaults to "\\\\n".
-            font (Font, optional): Font used to render text. Defaults to SEMISERIF.
+            font (Union[Font, Path, str] optional): Font instance, name or path. Defaults to "condensedsemi".
             adjust_spacing (int, optional): Adjust letter spacing. Defaults to 0.
             use_kerning (bool, optional): Enable automatic kerning. Defaults to True.
             use_ligatures (bool, optional): Enable all ligatures the font provides. Defaults to True.
