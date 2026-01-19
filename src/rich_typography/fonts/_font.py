@@ -1,3 +1,5 @@
+from functools import lru_cache
+from glob import glob
 from pathlib import Path
 import string
 from typing import Any, Dict, Iterable, List, Optional, Union
@@ -130,6 +132,7 @@ class Font:
         return ["┌─┐"] + ["│ │"] * (line_height - 2) + ["└─┘"]
 
     @classmethod
+    @lru_cache
     def from_file(cls, path: Union[Path, str]) -> "Font":
         """Load from glyphs file.
 
@@ -145,7 +148,15 @@ class Font:
             length = max(len(line) for line in lines)
             return [line.ljust(length) for line in lines]
 
-        path = Path(path)
+        parent_folder = Path(__file__).resolve().parent / "files"
+        builtin_fonts = {
+            Path(d).stem: parent_folder / d
+            for d in glob(str(parent_folder / "*.glyphs"))
+        }
+        if isinstance(path, str) and path in builtin_fonts:
+            path = builtin_fonts[path]
+        else:
+            path = Path(path)
         if not path.exists():
             raise FileNotFoundError("Font file not found.")
         config = ConfigParser()

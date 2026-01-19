@@ -1,3 +1,4 @@
+from pathlib import Path
 import re
 from dataclasses import dataclass
 from functools import partial
@@ -86,7 +87,7 @@ class Typography(JupyterMixin):
         no_wrap (bool, optional): Disable text wrapping, or None for default. Defaults to None.
         tab_size (int): Number of spaces per tab, or ``None`` to use ``console.tab_size``. Defaults to None.
         spans (List[Span], optional): A list of predefined style spans. Defaults to None.
-        font (Font, optional): Font used to render text. Defaults to SEMISERIF.
+        font (Union[Font, Path, str] optional): Font instance, name or path. Defaults to "semiserif".
         adjust_spacing (int, optional): Adjust letter spacing. Defaults to 0.
         use_kerning (bool, optional): Enable automatic kerning. Defaults to True.
         use_ligatures (bool, optional): Enable all ligatures the font provides. Defaults to True.
@@ -120,7 +121,7 @@ class Typography(JupyterMixin):
         no_wrap: Optional[bool] = None,
         tab_size: Optional[int] = None,
         spans: Optional[List[Span]] = None,
-        font: Font = SEMISERIF,
+        font: Union[Path, str, Font] = "semiserif",
         adjust_spacing: int = 0,
         use_kerning: bool = True,
         use_ligatures: bool = True,
@@ -135,7 +136,10 @@ class Typography(JupyterMixin):
         self.no_wrap = no_wrap
         self.tab_size = tab_size
         self._spans: List[Span] = spans or []
-        self.font = font
+        if isinstance(font, Font):
+            self.font = font
+        else:
+            self.font = Font.from_file(font)
         self.adjust_spacing = adjust_spacing
         self.use_kerning = use_kerning
         self.use_ligatures = use_ligatures
