@@ -16,6 +16,6 @@ if __name__ == "__main__":  # pragma: no cover
     text = "The quick brown fox jumps over the lazy dog"
 
     console = Console()
-    for font in Font.get_font_names():
+    for font in sorted(Font.get_font_names()):
         Font.from_file
         console.print(Typography.from_markup(f"[purple]{font}[/] {text}", font=font))
