@@ -1,11 +1,16 @@
 [header]
 name: Simple Test Font
 baseline: 3
+overline: 1
 
 [underline]
 index: 4
 line: custom
 char: ▔
+
+[underline2]
+index: 5
+line: overline
 
 [ascii_lowercase]
 glyphs:

@@ -1,6 +1,7 @@
 from pathlib import Path
 import string
 from rich_typography.fonts import Font
+from rich_typography.fonts._line import LineStyle
 from rich_typography.glyphs import Glyphs
 
 
@@ -64,3 +65,6 @@ def test_from_file() -> None:
     for char in string.ascii_uppercase:
         assert char in font
     assert font.ligatures == ["re", "ra", "ri", "ro", "ru", "fi", "ff", "ft", "ffi"]
+    assert font.underline == LineStyle(4, "custom", "▔")
+    assert font.overline == LineStyle(1, "overline")
+    assert font.underline2 == LineStyle(5, "overline")

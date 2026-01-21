@@ -2,11 +2,11 @@ from functools import lru_cache
 from glob import glob
 from pathlib import Path
 import string
-from typing import Any, Dict, Iterable, List, Optional, Union
+from typing import Any, Dict, Iterable, List, Optional, Union, cast
 
 from configparser import ConfigParser
 
-from rich_typography.fonts._line import LineStyle
+from rich_typography.fonts._line import LineStyle, LineType
 from rich_typography.glyphs import Glyph, Glyphs
 
 NON_OVERLAPPING = " \"'"
@@ -179,6 +179,14 @@ class Font:
         for section, data in config.items():
             if section == "header":
                 header |= {k: (d if k in ["name"] else int(d)) for k, d in data.items()}
+            elif section in ["underline", "underline2", "strike", "overline"]:
+                if "line" in data and data["line"]:
+                    index: int = int(data["index"])
+                    line: LineType = cast(LineType, data["line"])
+                    char = data["char"] if line == "custom" and "char" in data else None
+                    header[section] = LineStyle(index, line, char)
+                else:
+                    header[section] = int(data["index"])
             elif section == "ligatures":
                 ligatures |= Glyphs.from_lines(
                     data["sequences"].split(),
