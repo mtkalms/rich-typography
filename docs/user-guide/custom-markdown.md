@@ -4,7 +4,7 @@ We can modify [this example](https://rich.readthedocs.io/en/latest/markdown.html
 
 === "Output"
 
-    ```{.rich columns=120}
+    ```{.rich}
     from rich.markdown import Markdown as RichMarkdown, Heading as RichHeading
     from rich.console import Console, RenderResult
     from rich_typography.typography import Typography

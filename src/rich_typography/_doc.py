@@ -64,7 +64,7 @@ def rich(source, language, css_class, options, md, attrs, **kwargs) -> str:
     title = attrs.get("title", "Rich")
 
     rows = int(attrs.get("lines", 24))
-    columns = int(attrs.get("columns", 80))
+    columns = int(attrs.get("columns", 100))
 
     console = Console(
         file=io.StringIO(),
