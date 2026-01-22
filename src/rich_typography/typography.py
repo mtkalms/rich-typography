@@ -610,7 +610,7 @@ class Typography(JupyterMixin):
                 row_chars = [row + " " * (width - len(row)) for row in row_chars]
             # Adjust last style spans
             for row in row_spans:
-                row[-1].end = len(row_chars[0])
+                row.append(MutableSpan(row[-1].end, len(row_chars[0]), Style.null()))
             # Resolve span overlap
             row_spans = [MutableSpan.resolve(spans) for spans in row_spans]
             # Render result
