@@ -1,6 +1,6 @@
 # Custom Markdown
-
-We can modify [this example](https://rich.readthedocs.io/en/latest/markdown.html) from Rich to render H1 headings as Typography.
+Rich allows you to create your own Markdown renderable and overwrite how specific markdown blocks are rendered.
+With that can modify [this example](https://rich.readthedocs.io/en/latest/markdown.html) to render H1 headings as Typography instead of Text.
 
 === "Output"
 
