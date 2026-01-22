@@ -70,6 +70,9 @@ markdown_extensions:
         - name: mermaid
           class: mermaid
           format: !!python/name:pymdownx.superfences.fence_code_format
+        - name: rich
+          class: rich
+          format: !!python/name:rich_typography._doc.rich
   - pymdownx.snippets
   - pymdownx.inlinehilite
   - pymdownx.highlight:
