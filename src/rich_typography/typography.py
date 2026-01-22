@@ -434,7 +434,6 @@ class Typography(JupyterMixin):
         """Word wrap the text.
 
         Args:
-            console (Console): Console instance.
             width (int): Number of cells available per line.
             overflow (str, optional): Overflow method: "crop", "fold", or "ellipsis". Defaults to None.
             tab_size (int, optional): Default tab size. Defaults to 8.

@@ -81,26 +81,26 @@ class Glyphs(dict):
         return result
 
     @classmethod
-    def line_trail(cls, line: str):
+    def line_trail(cls, line: str) -> int:
         """Get number of trailing whitespace.
 
         Args:
             line (str): Line of text.
 
         Returns:
-            _type_: Trailing whitespace count.
+            int: Trailing whitespace count.
         """
         return len(line) - len(line.rstrip())
 
     @classmethod
-    def line_lead(cls, line: str):
+    def line_lead(cls, line: str) -> int:
         """Get number of leading whitespace.
 
         Args:
             line (str): Line of text.
 
         Returns:
-            _type_: Leading whitespace count.
+            int: Leading whitespace count.
         """
         return len(line) - len(line.lstrip())
 
