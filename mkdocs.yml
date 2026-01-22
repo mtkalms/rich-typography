@@ -38,6 +38,10 @@ theme:
         icon: material/weather-night
         name: Switch to system preference
 
+watch:
+  - src/rich_typography
+  - mkdocs.yml
+  - docs
 plugins:
   - search
   - mkdocstrings:
