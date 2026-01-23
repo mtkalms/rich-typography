@@ -1,39 +1,33 @@
-CODE_FORMAT = """\
-<pre>
-<code>
+CODE_FORMAT = """
 <svg class="rich-terminal" viewBox="0 0 {terminal_width} {terminal_height}" xmlns="http://www.w3.org/2000/svg">
     <!-- Generated with Rich https://www.textualize.io -->
     <style>
         @font-face {{
-        font-family: "Cascadia Code";
-        src: url(https://fonts.gstatic.com/s/cascadiacode/v5/qWcyB6-zq5zxD57cT5s916v3aD7rsBElg4M.woff2) format('woff2');
-                <style>
-@import url('https://fonts.googleapis.com/css2?family=Cascadia+Code:ital,wght@0,200..700;1,200..700&display=swap');
-</style>
-        font-style: normal;
-        font-weight: 400;
-    }}
-    @font-face {{
-        font-family: "Cascadia Code";
-        src: url(https://fonts.gstatic.com/s/cascadiacode/v5/qWcyB6-zq5zxD57cT5s916v3aD7rsBElg4M.woff2) format('woff2');
-        font-style: bold;
-        font-weight: 700;
-    }}
-
-    .{unique_id}-matrix {{
-        font-family: Cascadia Code, monospace;
-        font-size: {char_height}px;
-        line-height: {line_height}px;
-        font-variant-east-asian: full-width;
-        font-weight: bold;
-    }}
-
-    .{unique_id}-title {{
-        font-size: 18px;
-        font-weight: bold;
-        font-family: arial;
-    }}
-    {styles}
+            font-family: "Cascadia Code";
+            src: url(https://fonts.gstatic.com/s/cascadiacode/v5/qWcyB6-zq5zxD57cT5s916v3aD7rsBElg4M.woff2) format('woff2');
+            <style>
+                @import url('https://fonts.googleapis.com/css2?family=Cascadia+Code:ital,wght@0,200..700;1,200..700&display=swap');
+            </style>
+            font-style: normal;
+            font-weight: 400;
+        }}
+        @font-face {{
+            font-family: "Cascadia Code";
+            src: url(https://fonts.gstatic.com/s/cascadiacode/v5/qWcyB6-zq5zxD57cT5s916v3aD7rsBElg4M.woff2) format('woff2');
+            font-style: bold;
+            font-weight: 700;
+        }}
+        .{unique_id}-matrix {{
+            font-family: Cascadia Code, monospace;
+            font-size: {char_height}px;
+            line-height: {line_height}px;
+            font-variant-east-asian: full-width;
+        }}
+        .{unique_id}-title {{
+            font-size: 18px;
+            font-family: arial;
+        }}
+        {styles}
     </style>
     <defs>
         <clipPath id="{unique_id}-clip-terminal">
@@ -48,9 +42,8 @@ CODE_FORMAT = """\
     </g>
     </g>
 </svg>
-</code>
-</pre>
 """
+
 
 def rich(source, language, css_class, options, md, attrs, **kwargs) -> str:
     """A superfences formatter to insert an SVG screenshot."""
@@ -58,11 +51,37 @@ def rich(source, language, css_class, options, md, attrs, **kwargs) -> str:
     import io
 
     from rich.console import Console
+    from rich.terminal_theme import TerminalTheme
+
+    THEME = TerminalTheme(
+        (0, 0, 0),
+        (166, 166, 166),
+        [
+            (0, 0, 0),
+            (217, 4, 41),
+            (58, 217, 0),
+            (255, 231, 0),
+            (105, 67, 255),
+            (255, 43, 112),
+            (0, 197, 199),
+            (199, 199, 199),
+        ],
+        [
+            (128, 128, 128),
+            (255, 0, 0),
+            (0, 255, 0),
+            (255, 255, 0),
+            (0, 0, 255),
+            (255, 0, 255),
+            (0, 255, 255),
+            (199, 199, 199),
+        ],
+    )
 
     title = attrs.get("title", "Rich")
-
     rows = int(attrs.get("lines", 24))
     columns = int(attrs.get("columns", 100))
+    transparent = attrs.get("transparent", False)
 
     console = Console(
         file=io.StringIO(),
@@ -81,7 +100,11 @@ def rich(source, language, css_class, options, md, attrs, **kwargs) -> str:
         error_console.print_exception()
         # console.bell()
 
+    format = CODE_FORMAT
+    if not transparent:
+        format = """<pre><code>""" + format + """</code></pre>"""
+
     if "output" in globals:
         console.print(globals["output"])
-    output_svg = console.export_svg(title=title, code_format=CODE_FORMAT)
+    output_svg = console.export_svg(title=title, code_format=format, theme=THEME)
     return output_svg
