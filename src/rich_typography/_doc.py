@@ -2,21 +2,6 @@ CODE_FORMAT = """
 <svg class="rich-terminal" viewBox="0 0 {terminal_width} {terminal_height}" xmlns="http://www.w3.org/2000/svg">
     <!-- Generated with Rich https://www.textualize.io -->
     <style>
-        @font-face {{
-            font-family: "Cascadia Code";
-            src: url(https://fonts.gstatic.com/s/cascadiacode/v5/qWcyB6-zq5zxD57cT5s916v3aD7rsBElg4M.woff2) format('woff2');
-            <style>
-                @import url('https://fonts.googleapis.com/css2?family=Cascadia+Code:ital,wght@0,200..700;1,200..700&display=swap');
-            </style>
-            font-style: normal;
-            font-weight: 400;
-        }}
-        @font-face {{
-            font-family: "Cascadia Code";
-            src: url(https://fonts.gstatic.com/s/cascadiacode/v5/qWcyB6-zq5zxD57cT5s916v3aD7rsBElg4M.woff2) format('woff2');
-            font-style: bold;
-            font-weight: 700;
-        }}
         .{unique_id}-matrix {{
             font-family: Cascadia Code, monospace;
             font-size: {char_height}px;

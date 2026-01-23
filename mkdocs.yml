@@ -17,7 +17,7 @@ theme:
     - search.suggest
     - search.highlight
   font:
-    code: Fira Code
+    code: Cascadia Code
   palette:
     - media: "(prefers-color-scheme)"
       toggle:
@@ -87,3 +87,6 @@ markdown_extensions:
   - pymdownx.tasklist:
       custom_checkbox: true
   - admonition
+
+extra_css:
+  - stylesheets/extra.css
