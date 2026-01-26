@@ -1,6 +1,6 @@
 import pytest
-from rich_typography.glyphs import Glyphs
 from tests.utilities.markup import MarkupResult
+from rich_typography import Glyphs
 
 
 def test_simple_glyphs() -> None:

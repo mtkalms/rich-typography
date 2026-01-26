@@ -1,5 +1,5 @@
 ---
-title: "rich_typography.typography"
+title: "Typography"
 ---
 
-::: rich_typography.typography
+::: rich_typography.Typography

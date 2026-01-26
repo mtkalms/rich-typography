@@ -6,10 +6,8 @@ from typing import Any, Dict, Iterable, List, Optional, Union, cast
 
 from configparser import ConfigParser
 
-from rich_typography.fonts._line import LineStyle, LineType
-from rich_typography.glyphs import Glyph, Glyphs
-
-NON_OVERLAPPING = " \"'"
+from rich_typography.glyph import Glyph, Glyphs
+from rich_typography.line import LineStyle, LineType
 
 
 class Font:
@@ -134,7 +132,7 @@ class Font:
     @classmethod
     @lru_cache
     def _builtin_fonts(cls):
-        parent_folder = Path(__file__).resolve().parent / "files"
+        parent_folder = Path(__file__).resolve().parent / "fonts"
         return {
             Path(d).stem: parent_folder / d
             for d in glob(str(parent_folder / "*.glyphs"))
@@ -230,3 +228,15 @@ class Font:
 
     def __repr__(self):
         return f"<Font: '{self._name}'>"
+
+
+if __name__ == "__main__":  # pragma: no cover
+    from rich.console import Console
+    from rich_typography.typography import Typography
+
+    text = "The quick brown fox jumps over the lazy dog"
+
+    console = Console()
+    for font in sorted(Font.get_font_names()):
+        Font.from_file
+        console.print(Typography.from_markup(f"[purple]{font}[/] {text}", font=font))

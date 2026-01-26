@@ -3,7 +3,7 @@
 Welcome to the rich-typography documentation.
 
 ```{.rich columns=155 transparent=True}
-from rich_typography.typography import Typography
+from rich_typography import Typography
 from rich.containers import Renderables
 from rich.table import Table
 from rich.style import Style

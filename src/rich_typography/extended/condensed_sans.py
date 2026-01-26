@@ -1,7 +1,7 @@
 import string
 
-from rich_typography.fonts import Font
-from rich_typography.glyphs import Glyphs
+from rich_typography.font import Font
+from rich_typography.glyph import Glyphs
 
 
 _upper = Glyphs.from_lines(

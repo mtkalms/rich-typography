@@ -1,11 +1,7 @@
-
 from rich_typography.extended.condensed_sans import CONDENSED_SANS
 from rich_typography.extended.sans import SANS
 
-__all__ = [
-    "CONDENSED_SANS",
-    "SANS"
-]
+__all__ = ["CONDENSED_SANS", "SANS"]
 
 
 if __name__ == "__main__":  # pragma: no cover

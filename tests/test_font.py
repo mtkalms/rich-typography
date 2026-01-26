@@ -1,8 +1,6 @@
-from pathlib import Path
 import string
-from rich_typography.fonts import Font
-from rich_typography.fonts._line import LineStyle
-from rich_typography.glyphs import Glyphs
+from pathlib import Path
+from rich_typography import Font, Glyphs, LineStyle
 
 
 def test_simple_font() -> None:

@@ -1,5 +1,5 @@
 ---
-title: "rich_typography.glyphs"
+title: "Glyphs"
 ---
 
-::: rich_typography.glyphs
+::: rich_typography.Glyphs
