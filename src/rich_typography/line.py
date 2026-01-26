@@ -21,29 +21,17 @@ class LineStyle:
 
     @property
     def index(self) -> int:
-        """Line index.
-
-        Returns:
-            int: Line index.
-        """
+        """Line index."""
         return self._index
 
     @property
     def line(self) -> LineType:
-        """Line type. Either ansi styles "underline", "underline2", "overline", "strike", or "custom".
-
-        Returns:
-            LineType: Line type.
-        """
+        """Line type. Either ansi styles "underline", "underline2", "overline", "strike", or "custom"."""
         return self._line
 
     @property
     def char(self) -> Optional[str]:
-        """Line char. Only used when line is "custom".
-
-        Returns:
-            Optional[str]: Line char.
-        """
+        """Line char. Only used when line is "custom"."""
         return self._char
 
     def __or__(self, other):
