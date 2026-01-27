@@ -29,6 +29,12 @@ CODE_FORMAT = """
 </svg>
 """
 
+GLYPHS_CODE = """
+from rich.text import Text
+
+output = Text.from_markup('\\n'.join({lines}))
+"""
+
 
 def rich(source, language, css_class, options, md, attrs, **kwargs) -> str:
     """A superfences formatter to insert an SVG screenshot."""
@@ -93,3 +99,9 @@ def rich(source, language, css_class, options, md, attrs, **kwargs) -> str:
         console.print(globals["output"])
     output_svg = console.export_svg(title=title, code_format=format, theme=THEME)
     return output_svg
+
+
+def glyphs(source: str, language, css_class, options, md, attrs, **kwargs) -> str:
+    _lines = [line.replace("~", "") for line in source.splitlines()]
+    _source = GLYPHS_CODE.format_map({"lines": _lines})
+    return rich(_source, language, css_class, options, md, attrs, **kwargs)

@@ -16,6 +16,8 @@ theme:
     - navigation.path
     - search.suggest
     - search.highlight
+    - content.code.annotate
+    - content.code.copy
   font:
     code: Cascadia Code
   palette:
@@ -77,6 +79,9 @@ markdown_extensions:
         - name: rich
           class: rich
           format: !!python/name:rich_typography._doc.rich
+        - name: glyphs
+          class: glyphs
+          format: !!python/name:rich_typography._doc.glyphs
   - pymdownx.snippets
   - pymdownx.inlinehilite
   - pymdownx.highlight:
