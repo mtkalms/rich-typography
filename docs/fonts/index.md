@@ -2,21 +2,21 @@
 
 ## Regular
 
-Condensed Sans
+**Condensed Sans** (condensedsans)
 ```{.rich columns="120"}
 from rich_typography import Typography
 text = "The quick brown fox [underline]jumps[/underline] over the lazy dog"
 output=Typography.from_markup(text, font="condensedsans")
 ```
 
-Condensed Semi
+**Condensed Semi** (condensedsemi)
 ```{.rich columns="120"}
 from rich_typography import Typography
 text = "The quick brown fox [underline]jumps[/underline] over the lazy dog"
 output=Typography.from_markup(text, font="condensedsemi")
 ```
 
-Condensed Serif
+**Condensed Serif** (condensedserif)
 ```{.rich columns="120"}
 from rich_typography import Typography
 text = "The quick brown fox [underline]jumps[/underline] over the lazy dog"
@@ -25,18 +25,16 @@ output=Typography.from_markup(text, font="condensedserif")
 
 ## Extended
 
-Condensed Sans
+**Condensed Sans** (extended.condensedsans)
 ```{.rich columns="120"}
 from rich_typography import Typography
-from rich_typography.extended import CONDENSED_SANS
 text = "The quick brown fox [underline]jumps[/underline] over the lazy dog"
-output=Typography.from_markup(text, font=CONDENSED_SANS)
+output=Typography.from_markup(text, font="extended.condensedsans")
 ```
 
-Sans
+**Sans** (extended.sans)
 ```{.rich columns="120"}
 from rich_typography import Typography
-from rich_typography.extended import SANS
 text = "The quick brown fox [underline]jumps[/underline] over the lazy dog"
-output=Typography.from_markup(text, font=SANS)
+output=Typography.from_markup(text, font="extended.sans")
 ```

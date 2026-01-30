@@ -131,16 +131,23 @@ class Font:
 
     @classmethod
     @lru_cache
-    def _builtin_fonts(cls):
+    def _builtin_fonts(cls) -> Dict[str, Union[Path, str]]:
+        fonts = {}
         parent_folder = Path(__file__).resolve().parent / "fonts"
-        return {
+        fonts |= {
             Path(d).stem: parent_folder / d
             for d in glob(str(parent_folder / "*.glyphs"))
         }
+        parent_folder = Path(__file__).resolve().parent / "fonts/extended"
+        fonts |= {
+            f"extended.{Path(d).stem}": parent_folder / d
+            for d in glob(str(parent_folder / "*.glyphs"))
+        }
+        return fonts
 
     @classmethod
-    def get_font_names(cls):
-        """Return list of builtin font names."""
+    def get_font_names(cls) -> List[str]:
+        """Return list of builtin font names. Extended fonts are prefixed with 'extended.'."""
         return list(cls._builtin_fonts().keys())
 
     @classmethod
@@ -165,7 +172,7 @@ class Font:
             path = builtin_fonts[path]
         else:
             path = Path(path)
-        if not path.exists():
+        if not Path(path).exists():
             raise FileNotFoundError("Font file not found.")
         config = ConfigParser()
         config.read(path, encoding="utf-8")
@@ -238,5 +245,4 @@ if __name__ == "__main__":  # pragma: no cover
 
     console = Console()
     for font in sorted(Font.get_font_names()):
-        Font.from_file
         console.print(Typography.from_markup(f"[purple]{font}[/] {text}", font=font))
