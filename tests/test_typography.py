@@ -1,5 +1,5 @@
 from tests.utilities.asserts import assert_markup
-from tests.utilities.fonts import OVERLAP
+from tests.fonts import OVERLAP
 from tests.utilities.markup import MarkupResult
 
 from rich.text import Text

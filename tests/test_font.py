@@ -2,6 +2,8 @@ import string
 from pathlib import Path
 from rich_typography import Font, Glyphs, LineStyle
 
+FONT_FOLDER = Path(__file__).parent / "fonts"
+
 
 def test_simple_font() -> None:
     font = Font(
@@ -54,10 +56,9 @@ def test_simple_font() -> None:
 
 
 def test_from_file() -> None:
-    font = Font.from_file(Path(__file__).parent / "utilities/files/simple.glyphs")
+    font = Font.from_file(FONT_FOLDER / "simple.glyphs")
     assert font.name == "Simple Test Font"
     assert font.baseline == 3
-    print(font.get("a"))
     for char in string.ascii_lowercase:
         assert char in font
     for char in string.ascii_uppercase:
