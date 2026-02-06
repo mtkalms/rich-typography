@@ -202,6 +202,11 @@ class Font:
                     getattr(string, section),
                     *split(data["glyphs"]),
                 )
+            elif "chars" in data:
+                glyphs |= Glyphs.from_lines(
+                    list(data["chars"].replace(" ", "")),
+                    *split(data["glyphs"]),
+                )
         return Font(**header, glyphs=glyphs, ligatures=ligatures)
 
     def get(self, char: str) -> Glyph:
