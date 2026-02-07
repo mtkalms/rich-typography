@@ -56,7 +56,7 @@ def test_simple_font() -> None:
 
 
 def test_from_file() -> None:
-    font = Font.from_file(FONT_FOLDER / "simple.glyphs")
+    font = Font.from_file(FONT_FOLDER / "simple.toff")
     assert font.name == "Simple Test Font"
     assert font.baseline == 3
     assert font.underline == LineStyle(4, "custom", "▔")

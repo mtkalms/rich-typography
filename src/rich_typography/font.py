@@ -135,13 +135,12 @@ class Font:
         fonts = {}
         parent_folder = Path(__file__).resolve().parent / "fonts"
         fonts |= {
-            Path(d).stem: parent_folder / d
-            for d in glob(str(parent_folder / "*.glyphs"))
+            Path(d).stem: parent_folder / d for d in glob(str(parent_folder / "*.toff"))
         }
         parent_folder = Path(__file__).resolve().parent / "fonts/extended"
         fonts |= {
             f"extended.{Path(d).stem}": parent_folder / d
-            for d in glob(str(parent_folder / "*.glyphs"))
+            for d in glob(str(parent_folder / "*.toff"))
         }
         return fonts
 
@@ -156,7 +155,7 @@ class Font:
         """Load from glyphs file.
 
         Args:
-            path (Union[Path, str]): Path to glyphs file.
+            path (Union[Path, str]): Path to .toff file.
 
         Returns:
             Font: Loaded font.
