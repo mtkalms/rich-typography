@@ -9,7 +9,7 @@ There are two ways to define custom fonts in rich-typography: in memory as [Font
     This is usually done to avoid uneven gaps or resolve overlaps between glyphs.
 
     ```glyphs
-                      Glyphs                            ~~~~~~~~~~~~~~~~~~~~~~          ~~~ ~~~~~~~~~~~~~~~~~~~        ~~~     ~~~~~~~~~~~         ~~~  ~~~~~~~~~~~~~~~~~~~         ~~~
+                      Glyphs                             ~~~~~~~~~~~~~~~~~~~~~~          ~~~ ~~~~~~~~~~~~~~~~~~~        ~~~     ~~~~~~~~~~~         ~~~  ~~~~~~~~~~~~~~~~~~~         ~~~
                 ╭──────────────────╮                     ~~~~~~~~~~~~~~~~~~~~~~          ~~~ ~~~~~~~~~~~~~~~~~~~        ~~~     ~~~~~~~~~~~         ~~~  ~~~~~~~~~~~~~~~~~~~         ~~~
                 ┌──┐┌───┐┌──┐┌──┐┌─┐                     ~~~~~~~~~~~~~~~~~~~~~~          ~~~ ~~~~~~~~~~~~~~~~~~~        ~~~     ~~~~~~~~~~~         ~~~  ~~~~~~~~~~~~~~~~~~~         ~~~
                 │  ││╭╭╮││  ││  ││╷│        ╭╭╮   ╷      ~~~~~~~~~~~~~~~~~~~~~~  ╭╭╮   ╷ ~~~ ~~~~~~~~~~~~~~~~~~~        ~~~     ~[overline]  ╭╭╮   ╷[/]  [medium_violet_red]overline[/]~
@@ -20,7 +20,7 @@ There are two ways to define custom fonts in rich-typography: in memory as [Font
                 └──┘└───┘└──┘└──┘└─┘                     ~~~~~~~~~~~~~~~~~~~~~~          ~~~ ~~~~~~~~~~~~~~~~~~~        ~~~     ~~~~~~~~~~~         ~~~  ~~~~~~~~~~~~~~~~~~~         ~~~
                       ↑                                  ~~~~~~~~~~~~~~~~~~~~~~          ~~~ ~~~~~~~~~~~~~~~~~~~        ~~~     ~~~~~~~~~~~         ~~~  ~~~~~~~~~~~~~~~~~~~         ~~~
                   ligature                               ~~~~~~~~~~~~~~~~~~~~~~          ~~~ ~~~~~~~~~~~~~~~~~~~        ~~~     ~~~~~~~~~~~         ~~~  ~~~~~~~~~~~~~~~~~~~         ~~~
-                                                        ~~~~~~~~~~~~~~~~~~~~~~          ~~~ ~~~~~~~~~~~~~~~~~~~        ~~~     ~~~~~~~~~~~         ~~~  ~~~~~~~~~~~~~~~~~~~         ~~~
+                                                         ~~~~~~~~~~~~~~~~~~~~~~          ~~~ ~~~~~~~~~~~~~~~~~~~        ~~~     ~~~~~~~~~~~         ~~~  ~~~~~~~~~~~~~~~~~~~         ~~~
     ```
 
 
@@ -82,7 +82,7 @@ Font(
 
 The Textual Open Font Format (`.toff` ) used in rich-typography is based on the standard [config format](https://docs.python.org/3/library/configparser.html).
 All font files have a **header** section that defines the basic attributes like the font name and the position of the baseline.
-More complex line defintions, like in this example `underline2`, get their own section.
+More complex line definitions, like in this example `underline2`, get their own section.
 
 ```config
 [header]
@@ -100,7 +100,7 @@ As with Glyphs instances, glyph definitions can be grouped by category and split
 Sections that define any of the character sets in `string` just use that name (`lowercase`, `uppercase`, `digits`, `punctuation`) as their title.
 Others that define a custom set of characters can have any name that best describes them.
 The characters contained in these sections has to be listed under `chars`.
-Any spaces in `chars` will be ignored, and can be used to improve the readablity of the font file.
+Any spaces in `chars` will be ignored, and can be used to improve the readability of the font file.
 The length of spaces can be defined in the header instead.
 
 

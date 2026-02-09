@@ -32,7 +32,7 @@ output=Typography.from_markup(text, font="condensedserif")
 !!! warning "Unicode Compatibility"
     Fonts in the extended namespace use uncommon unicode characters, specifically
     from the [Symbols for Legacy Computing][LegacyComputing] block introduced in
-    [Unicode 16.0][Unicode16]. Using these fonts might severly limit the 
+    [Unicode 16.0][Unicode16]. Using these fonts might severely limit the 
     compatibility of your application with different terminal setups.
 
 **Condensed Sans** (extended.condensedsans)

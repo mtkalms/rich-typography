@@ -95,3 +95,15 @@ markdown_extensions:
 
 extra_css:
   - stylesheets/extra.css
+
+nav:
+  - Home: index.md
+  - Getting Started: getting_started.md
+  - Fonts: "fonts.md"
+  - API:
+    - "api/index.md"
+    - "api/font.md"
+    - "api/glyph.md"
+    - "api/linestyle.md"
+    - "api/typography.md"
+  - Roadmap: "roadmap.md"
