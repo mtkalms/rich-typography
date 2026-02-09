@@ -76,7 +76,7 @@ def test_overflow_fold() -> None:
     assert_markup(
         Typography(text, font=OVERLAP, overflow="fold"),
         expected,
-        "Overflow fold through Typogrpahy failed.",
+        "Overflow fold through Typography failed.",
         width=13,
     )
     assert_markup(
@@ -125,7 +125,7 @@ def test_overflow_ellipsis() -> None:
     assert_markup(
         Typography(text, font=OVERLAP, overflow="ellipsis"),
         expected,
-        "Overflow ellipsis through Typogrpahy failed.",
+        "Overflow ellipsis through Typography failed.",
         width=12,
     )
     assert_markup(
@@ -174,7 +174,7 @@ def test_overflow_crop() -> None:
     assert_markup(
         Typography(text, font=OVERLAP, overflow="crop"),
         expected,
-        "Overflow crop through Typogrpahy failed.",
+        "Overflow crop through Typography failed.",
         width=12,
     )
     assert_markup(
@@ -198,7 +198,7 @@ def test_overflow_ignore() -> None:
     assert_markup(
         Typography(text, font=OVERLAP, overflow="ignore"),
         expected,
-        "Overflow ignore through Typogrpahy failed.",
+        "Overflow ignore through Typography failed.",
         width=21,
     )
     assert_markup(
@@ -222,7 +222,7 @@ def test_no_wrap() -> None:
     assert_markup(
         Typography(text, font=OVERLAP, no_wrap=True),
         expected,
-        "Overflow ignore through Typogrpahy failed.",
+        "Overflow ignore through Typography failed.",
         width=21,
     )
     assert_markup(
@@ -264,7 +264,7 @@ def test_justify_default() -> None:
     assert_markup(
         Typography(text, font=OVERLAP, justify="default"),
         expected,
-        "Justify default through Typogrpahy failed.",
+        "Justify default through Typography failed.",
     )
     assert_markup(
         Typography(text, font=OVERLAP),
@@ -304,7 +304,7 @@ def test_justify_left() -> None:
     assert_markup(
         Typography(text, font=OVERLAP, justify="left"),
         expected,
-        "Justify left through Typogrpahy failed.",
+        "Justify left through Typography failed.",
     )
     assert_markup(
         Typography(text, font=OVERLAP),
@@ -344,7 +344,7 @@ def test_justify_right() -> None:
     assert_markup(
         Typography(text, font=OVERLAP, justify="right"),
         expected,
-        "Justify right through Typogrpahy failed.",
+        "Justify right through Typography failed.",
     )
     assert_markup(
         Typography(text, font=OVERLAP),
@@ -424,7 +424,7 @@ def test_justify_full() -> None:
     assert_markup(
         Typography(text, font=OVERLAP, justify="full"),
         expected,
-        "Justify full through Typogrpahy failed.",
+        "Justify full through Typography failed.",
     )
     assert_markup(
         Typography(text, font=OVERLAP),
