@@ -1,6 +1,6 @@
 [project]
 name = "rich-typography"
-version = "0.1.0"
+version = "0.2.0"
 homepage = "https://github.com/mtkalms/rich-typography"
 repository = "https://github.com/mtkalms/rich-typography"
 documentation = "https://mtkalms.github.io/rich-typography"
