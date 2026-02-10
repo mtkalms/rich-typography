@@ -7,6 +7,14 @@ Large letter typography for [Rich](https://github.com/Textualize/rich) and [Text
 
 ![rich-typography example](./images/preview.svg)
 
+## Installation
+
+Install with `uv` or your favorite PYPI package manager:
+
+```bash
+uv add rich-typography
+```
+
 ## Usage
 
 ```python
