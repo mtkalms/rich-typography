@@ -5,7 +5,7 @@
 # rich-typography
 Large letter typography for [Rich](https://github.com/Textualize/rich) and [Textual](https://github.com/Textualize/textual).
 
-![rich-typography example](./images/preview.svg)
+![rich-typography example](https://github.com/mtkalms/rich-typography/raw/main/images/preview.svg)
 
 ## Installation
 
@@ -26,7 +26,7 @@ text = Typography.from_markup("Hello from [purple]rich-typography[/purple]")
 console.print(text)
 ```
 
-![rich-typography usage](./images/usage.svg)
+![rich-typography usage](https://github.com/mtkalms/rich-typography/raw/main/images/usage.svg)
 
 ### Custom Markdown
 
@@ -72,7 +72,7 @@ class Markdown(RichMarkdown):
 output = Markdown(MARKDOWN)
 ```
 
-![markdown example](./images/markdown.svg)
+![markdown example](https://github.com/mtkalms/rich-typography/raw/main/images/markdown.svg)
 
 ## Similar Projects
 
