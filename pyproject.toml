@@ -1,9 +1,6 @@
 [project]
 name = "rich-typography"
 version = "0.2.0"
-homepage = "https://github.com/mtkalms/rich-typography"
-repository = "https://github.com/mtkalms/rich-typography"
-documentation = "https://mtkalms.github.io/rich-typography"
 
 description = "Large letter typography for Rich and Textual"
 readme = "README.md"
@@ -31,6 +28,11 @@ requires-python = ">=3.9"
 dependencies = [
     "rich>=14.2.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/mtkalms/rich-typography"
+Repository = "https://github.com/mtkalms/rich-typography"
+Documentation = "https://mtkalms.github.io/rich-typography"
 
 [project.scripts]
 rich-typography = "rich_typography:main"
