@@ -1,7 +1,6 @@
 [project]
 name = "rich-typography"
 version = "0.2.0"
-
 description = "Large letter typography for Rich and Textual"
 readme = "README.md"
 license = "MIT"
@@ -33,6 +32,8 @@ dependencies = [
 Homepage = "https://github.com/mtkalms/rich-typography"
 Repository = "https://github.com/mtkalms/rich-typography"
 Documentation = "https://mtkalms.github.io/rich-typography"
+"Bug Tracker" = "https://github.com/mtkalms/rich-typography/issues"
+"Changelog" = "https://github.com/mtkalms/rich-typography/blob/main/CHANGELOG.md"
 
 [project.scripts]
 rich-typography = "rich_typography:main"
