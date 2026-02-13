@@ -1,6 +1,5 @@
 import io
 from typing import Optional
-
 from rich.console import Console, RenderableType, JustifyMethod, OverflowMethod
 
 

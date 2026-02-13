@@ -1,6 +1,6 @@
 from rich.markdown import Markdown as RichMarkdown, Heading as RichHeading
 from rich.console import Console, RenderResult
-from rich_typography.typography import Typography
+from rich_typography import Typography
 
 
 MARKDOWN = """

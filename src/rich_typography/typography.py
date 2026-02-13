@@ -1,5 +1,7 @@
-from pathlib import Path
 import re
+import bisect
+
+from pathlib import Path
 from dataclasses import dataclass
 from functools import partial
 from typing import Dict, Iterable, List, Literal, Optional, Tuple, Union
@@ -21,12 +23,13 @@ from rich.emoji import EmojiVariant
 from rich.jupyter import JupyterMixin
 from rich.measure import Measurement
 
-from rich_typography.fonts import Font, NON_OVERLAPPING, LineStyle
-from rich_typography.glyphs import Glyphs
-import bisect
+from rich_typography.font import Font
+from rich_typography.glyph import Glyphs
+from rich_typography.line import LineStyle
 
 LigatureStyleMethod = Literal["first", "last"]
 
+NON_OVERLAPPING = " \"'"
 DEFAULT_FONT = "condensedsemi"
 DEFAULT_JUSTIFY: "JustifyMethod" = "default"
 DEFAULT_OVERFLOW: "OverflowMethod" = "fold"

@@ -1,9 +1,9 @@
 from itertools import zip_longest
 from typing import Optional
+from tests.utilities.render import render_ansi
+
 from rich.console import RenderableType, JustifyMethod, OverflowMethod
 from rich.text import Text
-
-from tests.utilities.render import render_ansi
 
 
 def assert_markup(

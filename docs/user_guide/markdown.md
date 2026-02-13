@@ -1,13 +1,13 @@
-# Custom Markdown
+# Markdown
 Rich allows you to create your own Markdown renderable and overwrite how specific markdown blocks are rendered.
-With that can modify [this example](https://rich.readthedocs.io/en/latest/markdown.html) to render H1 headings as Typography instead of Text.
+With that we can modify [this example](https://rich.readthedocs.io/en/latest/markdown.html) to render H1 headings as `Typography` instead of `Text`.
 
 === "Output"
 
     ```{.rich}
     from rich.markdown import Markdown as RichMarkdown, Heading as RichHeading
     from rich.console import Console, RenderResult
-    from rich_typography.typography import Typography
+    from rich_typography import Typography
 
 
     MARKDOWN = """

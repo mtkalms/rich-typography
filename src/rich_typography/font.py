@@ -6,10 +6,8 @@ from typing import Any, Dict, Iterable, List, Optional, Union, cast
 
 from configparser import ConfigParser
 
-from rich_typography.fonts._line import LineStyle, LineType
-from rich_typography.glyphs import Glyph, Glyphs
-
-NON_OVERLAPPING = " \"'"
+from rich_typography.glyph import Glyph, Glyphs
+from rich_typography.line import LineStyle, LineType
 
 
 class Font:
@@ -133,16 +131,22 @@ class Font:
 
     @classmethod
     @lru_cache
-    def _builtin_fonts(cls):
-        parent_folder = Path(__file__).resolve().parent / "files"
-        return {
-            Path(d).stem: parent_folder / d
-            for d in glob(str(parent_folder / "*.glyphs"))
+    def _builtin_fonts(cls) -> Dict[str, Union[Path, str]]:
+        fonts = {}
+        parent_folder = Path(__file__).resolve().parent / "fonts"
+        fonts |= {
+            Path(d).stem: parent_folder / d for d in glob(str(parent_folder / "*.toff"))
         }
+        parent_folder = Path(__file__).resolve().parent / "fonts/extended"
+        fonts |= {
+            f"extended.{Path(d).stem}": parent_folder / d
+            for d in glob(str(parent_folder / "*.toff"))
+        }
+        return fonts
 
     @classmethod
-    def get_font_names(cls):
-        """Return list of builtin font names."""
+    def get_font_names(cls) -> List[str]:
+        """Return list of builtin font names. Extended fonts are prefixed with 'extended.'."""
         return list(cls._builtin_fonts().keys())
 
     @classmethod
@@ -151,7 +155,7 @@ class Font:
         """Load from glyphs file.
 
         Args:
-            path (Union[Path, str]): Path to glyphs file.
+            path (Union[Path, str]): Path to .toff file.
 
         Returns:
             Font: Loaded font.
@@ -167,7 +171,7 @@ class Font:
             path = builtin_fonts[path]
         else:
             path = Path(path)
-        if not path.exists():
+        if not Path(path).exists():
             raise FileNotFoundError("Font file not found.")
         config = ConfigParser()
         config.read(path, encoding="utf-8")
@@ -195,6 +199,11 @@ class Font:
             elif section in dir(string):
                 glyphs |= Glyphs.from_lines(
                     getattr(string, section),
+                    *split(data["glyphs"]),
+                )
+            elif "chars" in data:
+                glyphs |= Glyphs.from_lines(
+                    list(data["chars"].replace(" ", "")),
                     *split(data["glyphs"]),
                 )
         return Font(**header, glyphs=glyphs, ligatures=ligatures)
@@ -230,3 +239,14 @@ class Font:
 
     def __repr__(self):
         return f"<Font: '{self._name}'>"
+
+
+if __name__ == "__main__":  # pragma: no cover
+    from rich.console import Console
+    from rich_typography.typography import Typography
+
+    text = "The quick brown fox jumps over the lazy dog"
+
+    console = Console()
+    for font in sorted(Font.get_font_names()):
+        console.print(Typography.from_markup(f"[purple]{font}[/] {text}", font=font))

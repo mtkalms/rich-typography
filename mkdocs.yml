@@ -16,8 +16,10 @@ theme:
     - navigation.path
     - search.suggest
     - search.highlight
+    - content.code.annotate
+    - content.code.copy
   font:
-    code: Fira Code
+    code: Cascadia Code
   palette:
     - media: "(prefers-color-scheme)"
       toggle:
@@ -77,6 +79,9 @@ markdown_extensions:
         - name: rich
           class: rich
           format: !!python/name:rich_typography._doc.rich
+        - name: glyphs
+          class: glyphs
+          format: !!python/name:rich_typography._doc.glyphs
   - pymdownx.snippets
   - pymdownx.inlinehilite
   - pymdownx.highlight:
@@ -87,3 +92,22 @@ markdown_extensions:
   - pymdownx.tasklist:
       custom_checkbox: true
   - admonition
+
+extra_css:
+  - stylesheets/extra.css
+
+nav:
+  - Home: index.md
+  - Getting Started: getting_started.md
+  - User Guide: 
+    - "user_guide/index.md"
+    - "user_guide/markdown.md"
+    - "user_guide/custom_font.md"
+  - Fonts: "fonts.md"
+  - API:
+    - "api/index.md"
+    - "api/font.md"
+    - "api/glyph.md"
+    - "api/linestyle.md"
+    - "api/typography.md"
+  - Roadmap: "roadmap.md"

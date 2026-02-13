@@ -18,7 +18,7 @@ class Glyphs(dict):
         """Create a Glyphs instance from lines.
 
         Args:
-            chars (Union[List[str], str]): String of chars or list of char groups in the same order as glyphs.
+            chars (Union[str, List[str]]): String of chars or list of char groups in the same order as glyphs.
             *glyphs (str): Lines of concatenated glyphs, delimited by full column of separator char.
             separator (str): Separator char used to separate individual glyphs. Defaults to space.
 
@@ -67,7 +67,7 @@ class Glyphs(dict):
             ValueError: Number of glyphs does not match number of chars.
 
         Returns:
-            Dict[str, Glyph]: Char to glyph map.
+            Dict[str, List[str]]: Char to glyph map.
         """
         _separator = separator or " "
         columns = zip(*glyphs)
@@ -109,8 +109,8 @@ class Glyphs(dict):
         """Calculates the maximum number of cells two glyphs can overlap without occluding each other.
 
         Args:
-            left (Glyph): Left glyph.
-            right (Glyph): Right glyph.
+            left (List[str]): Left glyph.
+            right (List[str]): Right glyph.
 
         Returns:
             int: Max overlap in number of cells.
@@ -148,8 +148,8 @@ class Glyphs(dict):
         """Merges two glyphs. In case of overlapping non-space characters, the right glyph will occlude the left glyph.
 
         Args:
-            left (Glyph): Left glyph.
-            right (Glyph): Right glyph.
+            left (List[str]): Left glyph.
+            right (List[str]): Right glyph.
             spacing (int): Space between left and right in number of cells. Defaults to 0.
 
         Returns:
@@ -162,8 +162,8 @@ class Glyphs(dict):
         """Calculates the boundary between two glyphs.
 
         Args:
-            left (Glyph): Left glyph.
-            right (Glyph): Right glyph.
+            left (List[str]): Left glyph.
+            right (List[str]): Right glyph.
             spacing (int): Space between left and right in number of cells.
 
         Returns:
@@ -183,8 +183,8 @@ class Glyphs(dict):
         """Calculates the background boundary between two glyphs.
 
         Args:
-            left (Glyph): Left glyph.
-            right (Glyph): Right glyph.
+            left (List[str]): Left glyph.
+            right (List[str]): Right glyph.
             spacing (int): Space between left and right in number of cells.
 
         Returns:

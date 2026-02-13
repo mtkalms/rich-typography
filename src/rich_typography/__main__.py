@@ -1,8 +1,10 @@
 from time import process_time
-from rich_typography.typography import Typography
+
 from rich.console import Console
 from rich.table import Table
 from rich.style import Style
+
+from rich_typography.typography import Typography
 
 
 if __name__ == "__main__":  # pragma: no cover

@@ -1,8 +1,8 @@
-from pathlib import Path
 import string
-from rich_typography.fonts import Font
-from rich_typography.fonts._line import LineStyle
-from rich_typography.glyphs import Glyphs
+from pathlib import Path
+from rich_typography import Font, Glyphs, LineStyle
+
+FONT_FOLDER = Path(__file__).parent / "fonts"
 
 
 def test_simple_font() -> None:
@@ -56,15 +56,18 @@ def test_simple_font() -> None:
 
 
 def test_from_file() -> None:
-    font = Font.from_file(Path(__file__).parent / "utilities/files/simple.glyphs")
+    font = Font.from_file(FONT_FOLDER / "simple.toff")
     assert font.name == "Simple Test Font"
     assert font.baseline == 3
-    print(font.get("a"))
+    assert font.underline == LineStyle(4, "custom", "▔")
+    assert font.overline == LineStyle(1, "overline")
+    assert font.underline2 == LineStyle(5, "overline")
     for char in string.ascii_lowercase:
         assert char in font
     for char in string.ascii_uppercase:
         assert char in font
+    for char in string.punctuation:
+        assert char in font
+    for char in ["ä", "ö", "ü", "ß"]:
+        assert char in font
     assert font.ligatures == ["re", "ra", "ri", "ro", "ru", "fi", "ff", "ft", "ffi"]
-    assert font.underline == LineStyle(4, "custom", "▔")
-    assert font.overline == LineStyle(1, "overline")
-    assert font.underline2 == LineStyle(5, "overline")
