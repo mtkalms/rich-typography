@@ -99,6 +99,10 @@ extra_css:
 nav:
   - Home: index.md
   - Getting Started: getting_started.md
+  - User Guide: 
+    - "user_guide/index.md"
+    - "user_guide/markdown.md"
+    - "user_guide/custom_font.md"
   - Fonts: "fonts.md"
   - API:
     - "api/index.md"
