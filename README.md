@@ -74,6 +74,44 @@ output = Markdown(MARKDOWN)
 
 ![markdown example](https://github.com/mtkalms/rich-typography/raw/main/images/markdown.svg)
 
+## Alternative Approaches
+
+### Render with Pillow and use with textual-image
+
+- Allows you to use any font
+- Depends on terminal supporting terminal graphics protocol (TPG) or sixel graphics protocol
+- Layout is more difficult to control
+
+```python
+from PIL import Image, ImageDraw, ImageFont
+from textual_image.renderable import Image as RichImage
+from rich.console import Console
+
+img = Image.new("RGBA", (500, 64))
+draw = ImageDraw.Draw(img)
+font = ImageFont.truetype("CascadiaCode.ttf", 64)
+draw.text((0, 0), "This is an h1", font=font, fill=(255, 0, 0))
+
+console = Console()
+console.print(RichImage(img))
+```
+
+TGP:
+
+![Pillow font rendering with terminal graphics protocol](https://github.com/mtkalms/rich-typography/raw/main/images/pillow-tgp.png)
+
+Sixel:
+
+![Pillow font rendering with sixel graphics](https://github.com/mtkalms/rich-typography/raw/main/images/pillow-sixel.png)
+
+Half block fallback:
+
+![Pillow font rendering with characters](https://github.com/mtkalms/rich-typography/raw/main/images/pillow-chars.png)
+
+### Text Sizing Protocol
+
+Kitty has proposed a [text sizing protocol](https://sw.kovidgoyal.net/kitty/text-sizing-protocol/) but support by popular terminals is currently still limited.
+
 ## Similar Projects
 
 - [rich-pyfiglet](https://github.com/edward-jazzhands/rich-pyfiglet)
